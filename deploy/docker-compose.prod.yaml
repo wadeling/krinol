@@ -1,0 +1,66 @@
+# 生产环境Docker Compose配置
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: build/backend/Dockerfile
+    container_name: krinol-backend-prod
+    restart: unless-stopped
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql://user:password@db:5432/krinol_prod
+      - SECRET_KEY=${SECRET_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    volumes:
+      - ../backend/uploads:/app/uploads
+    networks:
+      - krinol-network
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: build/frontend/Dockerfile
+    container_name: krinol-frontend-prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - krinol-network
+
+  db:
+    image: postgres:15-alpine
+    container_name: krinol-db-prod
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=krinol_prod
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - krinol-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: krinol-redis-prod
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - krinol-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  krinol-network:
+    driver: bridge
