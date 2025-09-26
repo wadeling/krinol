@@ -1,0 +1,38 @@
+# 开发环境Docker Compose配置
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: build/backend/Dockerfile
+    container_name: krinol-backend-dev
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=sqlite:///./resume_analysis.db
+      - SECRET_KEY=dev-secret-key
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../backend:/app
+      - ../backend/uploads:/app/uploads
+    networks:
+      - krinol-dev-network
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: build/frontend/Dockerfile
+    container_name: krinol-frontend-dev
+    ports:
+      - "3000:80"
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    networks:
+      - krinol-dev-network
+
+networks:
+  krinol-dev-network:
+    driver: bridge

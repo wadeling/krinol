@@ -61,7 +61,7 @@ clean:
 # Docker相关命令
 docker-up:
 	@echo "启动Docker容器..."
-	docker-compose up -d
+	cd deploy && docker-compose -f docker-compose.yaml up -d
 	@echo "服务已启动!"
 	@echo "前端: http://localhost:3000"
 	@echo "后端: http://localhost:8000"
@@ -69,13 +69,22 @@ docker-up:
 
 docker-down:
 	@echo "停止Docker容器..."
-	docker-compose down
+	cd deploy && docker-compose -f docker-compose.yaml down
 	@echo "容器已停止!"
 
 docker-build:
 	@echo "构建Docker镜像..."
-	docker-compose build
+	cd deploy && docker-compose -f docker-compose.yaml build
 	@echo "镜像构建完成!"
+
+# 构建Docker镜像（单独构建）
+docker-build-backend:
+	@echo "构建后端Docker镜像..."
+	docker build -f build/backend/Dockerfile -t krinol-backend:latest .
+
+docker-build-frontend:
+	@echo "构建前端Docker镜像..."
+	docker build -f build/frontend/Dockerfile -t krinol-frontend:latest .
 
 # 数据库相关
 db-migrate:

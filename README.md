@@ -53,8 +53,7 @@ krinol/
 │   │   ├── utils/          # 工具函数
 │   │   └── config/         # 配置文件
 │   ├── main.py             # 应用入口
-│   ├── requirements.txt    # Python依赖
-│   └── Dockerfile          # Docker配置
+│   └── requirements.txt    # Python依赖
 ├── frontend/               # 前端应用
 │   ├── src/
 │   │   ├── components/     # 组件
@@ -62,10 +61,25 @@ krinol/
 │   │   ├── stores/         # 状态管理
 │   │   ├── router/         # 路由配置
 │   │   └── utils/          # 工具函数
-│   ├── package.json        # 前端依赖
-│   └── Dockerfile          # Docker配置
-├── docker-compose.yml      # Docker编排
-├── Makefile               # 构建脚本
+│   ├── public/             # 静态资源
+│   └── package.json        # 前端依赖
+├── build/                  # 构建文件目录
+│   ├── backend/            # 后端构建文件
+│   │   ├── Dockerfile      # 后端Dockerfile
+│   │   └── .dockerignore   # 后端忽略文件
+│   ├── frontend/           # 前端构建文件
+│   │   ├── Dockerfile      # 前端Dockerfile
+│   │   └── .dockerignore   # 前端忽略文件
+│   ├── build.sh            # 构建脚本
+│   └── README.md           # 构建说明
+├── deploy/                 # 部署文件目录
+│   ├── docker-compose.yaml      # 默认Docker Compose配置
+│   ├── docker-compose.dev.yaml  # 开发环境配置
+│   ├── docker-compose.prod.yaml # 生产环境配置
+│   ├── env.example              # 环境变量示例
+│   ├── deploy.sh                # 部署脚本
+│   └── README.md                # 部署说明
+├── Makefile               # 自动化脚本
 └── README.md              # 项目文档
 ```
 
@@ -105,6 +119,41 @@ krinol/
    ```
 
 5. **访问应用**
+   - 前端: http://localhost:3000
+   - 后端API: http://localhost:8000
+   - API文档: http://localhost:8000/docs
+
+### Docker部署
+
+1. **使用Makefile**
+   ```bash
+   # 构建并启动容器
+   make docker-up
+   
+   # 停止容器
+   make docker-down
+   
+   # 构建镜像
+   make docker-build
+   ```
+
+2. **使用部署脚本**
+   ```bash
+   # 进入部署目录
+   cd deploy
+   
+   # 配置环境变量
+   cp env.example .env
+   # 编辑 .env 文件
+   
+   # 部署服务
+   ./deploy.sh start
+   
+   # 查看日志
+   ./deploy.sh logs
+   ```
+
+3. **访问应用**
    - 前端: http://localhost:3000
    - 后端API: http://localhost:8000
    - API文档: http://localhost:8000/docs

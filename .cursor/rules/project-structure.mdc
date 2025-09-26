@@ -59,13 +59,21 @@ project_root/
 │   ├── tests/                # 后端测试
 │   └── main.py               # 或 manage.py (Django/FastAPI入口)
 └── frontend/                 # Vue.js、React等前端项目
-    ├── src/                  # 前端源代码
-    │   ├── assets/           # 静态资源（如图片、字体等）
-    │   ├── components/       # 可复用组件
-    │   ├── views/            # 页面视图
-    │   └── App.vue           # 或 App.jsx (主组件)
-    ├── public/               # 公共文件（如index.html）
-    └── package.json          # 前端依赖
+│   ├── src/                  # 前端源代码
+│   ├── assets/               # 静态资源（如图片、字体等）
+|   │   ├── components/       # 可复用组件
+|   │   ├── views/            # 页面视图
+|   │   └── App.vue           # 或 App.jsx (主组件)
+|   ├── public/               # 公共文件（如index.html）
+|   └── package.json          # 前端依赖
+└── build/                    # docker构建文件目录
+│   ├── backend/              # 后端构建文件目录 
+|   │   └── Dockerfile        # 后端构建dockerfile
+│   ├── frontend/             # 前端构建文件目录
+|   │   └── Dockerfile        # 前端构建dockerfile
+└── deploy/                   # 部署文件目录
+│   ├── docker-compose.yaml   # docker-compose 部署文件
+└── Makefile                  # makefile,用于构建镜像
 
 ### 7. 格式要求
 - **目录命名**：使用小写字母、下划线分隔（如 `user_profile`）
