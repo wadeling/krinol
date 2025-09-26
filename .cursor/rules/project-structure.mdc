@@ -1,0 +1,73 @@
+---
+description: "Python Web应用项目结构与目录组织规范"
+globs: ["*.py", "requirements.txt", "config/*.py", "app/*", "src/*"]
+alwaysApply: false
+---
+
+# Python Web项目结构规范
+
+## 上下文
+规范且一致的项目结构是Python Web项目成功的基石。它能提升代码可读性、便于团队协作、简化部署流程，并使项目更易于维护和扩展。本规则适用于使用Flask、Django、FastAPI等框架的项目。
+
+## 核心目录结构规则
+
+### 1. 根目录与模块划分
+项目应遵循清晰的模块化设计，根目录下建议包含以下内容：
+
+- **`app/` 或 `src/`**：核心应用代码目录（这是项目的主要代码存放位置，包含所有业务逻辑）
+- **`config/`**：配置文件目录，存放不同环境（开发、测试、生产）的配置
+- **`tests/`**：测试代码目录，与主代码结构平行
+- **`static/`**：静态资源目录，下设 `css/`, `js/`, `images/` 子目录
+- **`templates/`**：HTML模板目录
+- **`database/`**：数据库相关文件，如模型、迁移脚本
+- **`server/`**：服务器启动与配置代码
+- **`requirements.txt`**：项目依赖清单
+- **`main.py` / `run.py` / `wsgi.py`**：应用入口点
+
+### 2. 应用内部结构 (`app/` 或 `src/`)
+核心业务代码应按功能模块组织，鼓励使用MVC或类似模式：
+
+- **`models/`** 或 **`entities/`**：数据模型和ORM类
+- **`views/`** 或 **`controllers/`** 或 **`routes/`**：处理请求和业务逻辑的路由或控制器
+- **`services/`**：核心业务逻辑层，处理复杂操作
+- **`utils/`** 或 **`helpers/`**：公共工具函数和类
+- **`__init__.py`**：将目录标记为Python包
+
+### 3. 配置文件管理
+- 配置信息（如数据库连接字符串、API密钥）必须与代码分离，通过环境变量加载
+- 使用 `config/settings.py` 集中管理配置，并支持不同环境
+
+### 4. 依赖管理
+- 必须提供 `requirements.txt` 文件，明确所有依赖包及其版本
+- 考虑使用 `pip freeze > requirements.txt` 生成
+
+### 5. 静态资源与模板
+- 静态文件（CSS, JS, 图片）必须置于 `static/` 目录相应子文件夹
+- 模板文件应全部放在 `templates/` 目录
+
+### 6. 前后端分离结构（可选）
+若为前后端分离项目，建议采用以下结构：
+project_root/
+├── backend/                  # Django或FastAPI后端项目
+│   ├── app/                  # 后端核心代码
+│   │   ├── __init__.py       # Python包初始化文件
+│   │   ├── models/           # 数据模型
+│   │   ├── views/            # 视图/控制器
+│   │   ├── services/         # 业务逻辑服务
+│   │   └── utils/            # 工具类
+│   ├── config/               # 后端配置
+│   ├── tests/                # 后端测试
+│   └── main.py               # 或 manage.py (Django/FastAPI入口)
+└── frontend/                 # Vue.js、React等前端项目
+    ├── src/                  # 前端源代码
+    │   ├── assets/           # 静态资源（如图片、字体等）
+    │   ├── components/       # 可复用组件
+    │   ├── views/            # 页面视图
+    │   └── App.vue           # 或 App.jsx (主组件)
+    ├── public/               # 公共文件（如index.html）
+    └── package.json          # 前端依赖
+
+### 7. 格式要求
+- **目录命名**：使用小写字母、下划线分隔（如 `user_profile`）
+- **文件命名**：Python文件使用小写蛇形命名法（如 `database_utils.py`）
+- **入口文件**：确保存在明确的启动脚本（如 `run.py` 或 `main.py`）
