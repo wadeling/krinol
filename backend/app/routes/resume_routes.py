@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from typing import List
 
 from ..models.resume_models import ResumeData, ResumeUploadResponse
-from ..models.user_models import UserResponse
+from ..models.user_models import UserResponse, User
 from ..services.resume_service import ResumeService
 from ..utils.auth import get_current_user
 from ..utils.logger import get_logger
@@ -21,7 +21,7 @@ resume_service = ResumeService()
 @router.post("/upload", response_model=ResumeUploadResponse, status_code=status.HTTP_201_CREATED)
 async def upload_resume(
     file: UploadFile = File(...),
-    current_user: UserResponse = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """
     上传简历文件
@@ -74,7 +74,7 @@ async def upload_resume(
 
 
 @router.get("/", response_model=List[ResumeData])
-async def get_user_resumes(current_user: UserResponse = Depends(get_current_user)):
+async def get_user_resumes(current_user: User = Depends(get_current_user)):
     """
     获取用户的所有简历
     
@@ -95,7 +95,7 @@ async def get_user_resumes(current_user: UserResponse = Depends(get_current_user
 @router.get("/{resume_id}", response_model=ResumeData)
 async def get_resume(
     resume_id: str,
-    current_user: UserResponse = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """
     获取指定简历
@@ -128,7 +128,7 @@ async def get_resume(
 @router.delete("/{resume_id}")
 async def delete_resume(
     resume_id: str,
-    current_user: UserResponse = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """
     删除简历

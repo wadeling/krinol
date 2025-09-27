@@ -23,9 +23,16 @@ class Settings(BaseSettings):
     
     # 数据库配置
     database_url: str = Field(
-        default="sqlite:///./resume_analysis.db",
+        default="mysql+pymysql://root:password@localhost:3306/krinol_db",
         description="数据库连接URL"
     )
+    
+    # MySQL配置
+    mysql_host: str = Field(default="localhost", description="MySQL主机")
+    mysql_port: int = Field(default=3306, description="MySQL端口")
+    mysql_user: str = Field(default="root", description="MySQL用户名")
+    mysql_password: str = Field(default="password", description="MySQL密码")
+    mysql_database: str = Field(default="krinol_db", description="MySQL数据库名")
     
     # JWT配置
     secret_key: str = Field(

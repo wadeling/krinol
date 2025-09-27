@@ -3,14 +3,17 @@ version: '3.8'
 
 services:
   backend:
-    build:
-      context: ..
-      dockerfile: build/backend/Dockerfile
+    image: krinol-backend:latest
     container_name: krinol-backend-prod
     restart: unless-stopped
     environment:
       - ENVIRONMENT=production
-      - DATABASE_URL=postgresql://user:password@db:5432/krinol_prod
+      - DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}
+      - MYSQL_HOST=db
+      - MYSQL_PORT=3306
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
       - SECRET_KEY=${SECRET_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     ports:
@@ -23,9 +26,7 @@ services:
       - krinol-network
 
   frontend:
-    build:
-      context: ..
-      dockerfile: build/frontend/Dockerfile
+    image: krinol-frontend:latest
     container_name: krinol-frontend-prod
     restart: unless-stopped
     ports:
@@ -36,15 +37,18 @@ services:
       - krinol-network
 
   db:
-    image: postgres:15-alpine
+    image: mysql:8.0
     container_name: krinol-db-prod
     restart: unless-stopped
     environment:
-      - POSTGRES_DB=krinol_prod
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
     networks:
       - krinol-network
 
@@ -58,7 +62,7 @@ services:
       - krinol-network
 
 volumes:
-  postgres_data:
+  mysql_data:
   redis_data:
 
 networks:

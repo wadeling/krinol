@@ -55,8 +55,13 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore()
+  
+  // 初始化用户信息
+  if (userStore.token && !userStore.user) {
+    await userStore.getCurrentUser()
+  }
   
   if (to.meta.requiresAuth && !userStore.isAuthenticated) {
     next('/login')

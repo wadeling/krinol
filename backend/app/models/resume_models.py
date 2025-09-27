@@ -63,7 +63,7 @@ class AnalysisResult(BaseModel):
     # 元数据
     analysis_time: Optional[datetime] = Field(None, description="分析完成时间")
     processing_duration: Optional[float] = Field(None, description="处理耗时（秒）")
-    model_used: Optional[str] = Field(None, description="使用的模型")
+    ai_model_used: Optional[str] = Field(None, description="使用的AI模型")
     raw_response: Optional[Dict[str, Any]] = Field(None, description="原始模型响应")
     
     created_at: datetime = Field(default_factory=datetime.now)

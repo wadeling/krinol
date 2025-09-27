@@ -46,37 +46,57 @@ check_env() {
     fi
 }
 
+# 获取compose文件
+get_compose_file() {
+    local env=${1:-dev}
+    if [ "$env" = "prod" ]; then
+        echo "docker-compose.prod.yaml"
+    else
+        echo "docker-compose.dev.yaml"
+    fi
+}
+
 # 构建镜像
 build_images() {
-    log_info "构建 Docker 镜像..."
-    docker-compose -f docker-compose.yaml build --no-cache
+    local env=${1:-dev}
+    local compose_file=$(get_compose_file $env)
+    log_info "构建 Docker 镜像 ($env 环境)..."
+    docker-compose -f $compose_file build --no-cache
     log_info "镜像构建完成"
 }
 
 # 启动服务
 start_services() {
-    log_info "启动服务..."
-    docker-compose -f docker-compose.yaml up -d
+    local env=${1:-dev}
+    local compose_file=$(get_compose_file $env)
+    log_info "启动服务 ($env 环境)..."
+    docker-compose -f $compose_file up -d
     log_info "服务启动完成"
 }
 
 # 停止服务
 stop_services() {
-    log_info "停止服务..."
-    docker-compose -f docker-compose.yaml down
+    local env=${1:-dev}
+    local compose_file=$(get_compose_file $env)
+    log_info "停止服务 ($env 环境)..."
+    docker-compose -f $compose_file down
     log_info "服务已停止"
 }
 
 # 重启服务
 restart_services() {
-    log_info "重启服务..."
-    docker-compose -f docker-compose.yaml restart
+    local env=${1:-dev}
+    local compose_file=$(get_compose_file $env)
+    log_info "重启服务 ($env 环境)..."
+    docker-compose -f $compose_file restart
     log_info "服务重启完成"
 }
 
 # 查看日志
 view_logs() {
-    docker-compose -f docker-compose.yaml logs -f
+    local env=${1:-dev}
+    local compose_file=$(get_compose_file $env)
+    docker-compose -f $compose_file logs -f
 }
 
 # 清理
@@ -91,31 +111,31 @@ main() {
     case "${1:-help}" in
         "build")
             check_docker
-            build_images
+            build_images "${2:-dev}"
             ;;
         "start")
             check_docker
             check_env
-            start_services
+            start_services "${2:-dev}"
             ;;
         "stop")
             check_docker
-            stop_services
+            stop_services "${2:-dev}"
             ;;
         "restart")
             check_docker
-            restart_services
+            restart_services "${2:-dev}"
             ;;
         "logs")
             check_docker
-            view_logs
+            view_logs "${2:-dev}"
             ;;
         "cleanup")
             check_docker
             cleanup
             ;;
         "help"|*)
-            echo "用法: $0 {build|start|stop|restart|logs|cleanup|help}"
+            echo "用法: $0 {build|start|stop|restart|logs|cleanup|help} [dev|prod]"
             echo ""
             echo "命令说明:"
             echo "  build    - 构建 Docker 镜像"
@@ -125,6 +145,15 @@ main() {
             echo "  logs     - 查看日志"
             echo "  cleanup  - 清理未使用的镜像和容器"
             echo "  help     - 显示此帮助信息"
+            echo ""
+            echo "环境参数:"
+            echo "  dev      - 开发环境 (默认)"
+            echo "  prod     - 生产环境"
+            echo ""
+            echo "示例:"
+            echo "  $0 start dev    # 启动开发环境"
+            echo "  $0 start prod   # 启动生产环境"
+            echo "  $0 build prod   # 构建生产环境镜像"
             ;;
     esac
 }

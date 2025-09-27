@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status
 from typing import List
 
 from ..models.resume_models import AnalysisRequest, AnalysisResponse, AnalysisResult
-from ..models.user_models import UserResponse
+from ..models.user_models import UserResponse, User
 from ..services.resume_service import ResumeService
 from ..services.ai_service import AIService
 from ..utils.auth import get_current_user
@@ -25,7 +25,7 @@ settings = get_settings()
 async def analyze_resume(
     analysis_request: AnalysisRequest,
     background_tasks: BackgroundTasks,
-    current_user: UserResponse = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """
     分析简历
@@ -76,7 +76,7 @@ async def analyze_resume(
 @router.get("/{analysis_id}", response_model=AnalysisResponse)
 async def get_analysis_result(
     analysis_id: str,
-    current_user: UserResponse = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """
     获取分析结果
@@ -114,7 +114,7 @@ async def get_analysis_result(
 
 
 @router.get("/", response_model=List[AnalysisResult])
-async def get_user_analyses(current_user: UserResponse = Depends(get_current_user)):
+async def get_user_analyses(current_user: User = Depends(get_current_user)):
     """
     获取用户的所有分析结果
     

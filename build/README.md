@@ -10,9 +10,11 @@ build/
 │   ├── Dockerfile       # 后端Dockerfile
 │   └── .dockerignore    # 后端Docker忽略文件
 ├── frontend/             # 前端构建文件
-│   ├── Dockerfile       # 前端Dockerfile
+│   ├── Dockerfile       # 前端Dockerfile（标准版本）
+│   ├── Dockerfile.arm64 # 前端Dockerfile（ARM64专用）
 │   └── .dockerignore    # 前端Docker忽略文件
 ├── build.sh             # 构建脚本
+├── test-frontend-build.sh # 前端构建测试脚本
 └── README.md            # 本文件
 ```
 
@@ -74,9 +76,26 @@ docker build -f build/frontend/Dockerfile -t krinol-frontend:latest .
 - 暴露80端口
 - 包含Nginx配置
 
+## ARM64架构支持
+
+项目支持ARM64架构（如Apple Silicon Mac），构建脚本会自动检测架构并选择合适的Dockerfile：
+
+- **标准架构**：使用 `Dockerfile`
+- **ARM64架构**：使用 `Dockerfile.arm64`
+
+ARM64版本专门解决了Rollup在ARM64架构下的依赖问题。
+
+### 测试构建
+
+```bash
+# 测试前端构建
+./build/test-frontend-build.sh
+```
+
 ## 注意事项
 
 1. 构建前确保在项目根目录执行
 2. 确保Docker服务正在运行
 3. 构建过程中会下载依赖，请确保网络连接正常
 4. 生产环境建议使用多阶段构建优化镜像大小
+5. ARM64架构会自动使用专用Dockerfile解决兼容性问题
