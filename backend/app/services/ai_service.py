@@ -58,7 +58,7 @@ class AIService:
             # 计算处理时间
             processing_duration = (datetime.now() - start_time).total_seconds()
             analysis_result.processing_duration = processing_duration
-            analysis_result.model_used = self.model_name
+            analysis_result.ai_model_used = self.model_name
             analysis_result.raw_response = raw_response
             analysis_result.status = AnalysisStatus.COMPLETED
             analysis_result.analysis_time = datetime.now()

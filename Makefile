@@ -74,17 +74,22 @@ docker-down:
 
 docker-build:
 	@echo "构建Docker镜像..."
-	cd deploy && docker-compose -f docker-compose.yaml build
+	cd deploy && docker-compose -f docker-compose.prod.yaml build
 	@echo "镜像构建完成!"
 
 # 构建Docker镜像（单独构建）
 docker-build-backend:
 	@echo "构建后端Docker镜像..."
-	docker build -f build/backend/Dockerfile -t krinol-backend:latest .
+	docker build --no-cache -f build/backend/Dockerfile -t krinol-backend:latest .
 
 docker-build-frontend:
 	@echo "构建前端Docker镜像..."
-	docker build -f build/frontend/Dockerfile -t krinol-frontend:latest .
+	@if [ "$(shell uname -m)" = "arm64" ] || [ "$(shell uname -m)" = "aarch64" ]; then \
+		echo "检测到ARM64架构，使用专用Dockerfile..."; \
+		docker build --no-cache -f build/frontend/Dockerfile.arm64 -t krinol-frontend:latest .; \
+	else \
+		docker build --no-cache -f build/frontend/Dockerfile -t krinol-frontend:latest .; \
+	fi
 
 # 数据库相关
 db-migrate:

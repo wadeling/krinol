@@ -17,6 +17,8 @@ PyJWT==2.10.1
 # 数据库
 sqlalchemy==2.0.23
 alembic==1.13.1
+pymysql==1.1.0
+cryptography==42.0.8
 
 # 文件处理
 PyPDF2==3.0.1

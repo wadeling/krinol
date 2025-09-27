@@ -30,7 +30,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 build_backend() {
     log_info "构建后端 Docker 镜像..."
     cd "$PROJECT_ROOT"
-    docker build -f build/backend/Dockerfile -t krinol-backend:latest .
+    docker build --no-cache -f build/backend/Dockerfile -t krinol-backend:latest .
     log_info "后端镜像构建完成"
 }
 
@@ -38,7 +38,16 @@ build_backend() {
 build_frontend() {
     log_info "构建前端 Docker 镜像..."
     cd "$PROJECT_ROOT"
-    docker build -f build/frontend/Dockerfile -t krinol-frontend:latest .
+    
+    # 检测架构
+    ARCH=$(uname -m)
+    if [[ "$ARCH" == "arm64" || "$ARCH" == "aarch64" ]]; then
+        log_info "检测到ARM64架构，使用专用Dockerfile..."
+        docker build --no-cache -f build/frontend/Dockerfile.arm64 -t krinol-frontend:latest .
+    else
+        docker build --no-cache -f build/frontend/Dockerfile -t krinol-frontend:latest .
+    fi
+    
     log_info "前端镜像构建完成"
 }
 

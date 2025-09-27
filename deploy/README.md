@@ -6,26 +6,28 @@
 
 ```
 deploy/
-├── docker-compose.yaml      # 默认Docker Compose配置
 ├── docker-compose.dev.yaml  # 开发环境配置
 ├── docker-compose.prod.yaml # 生产环境配置
 ├── env.example              # 环境变量示例
 ├── deploy.sh                # 部署脚本
+├── test-mysql.sh            # MySQL连接测试脚本
 └── README.md                # 本文件
 ```
 
 ## 环境配置
 
 ### 开发环境
-- 使用SQLite数据库
+- 使用MySQL数据库
 - 启用热重载
 - 暴露调试端口
+- 数据持久化
 
 ### 生产环境
-- 使用PostgreSQL数据库
+- 使用MySQL数据库
 - 使用Redis缓存
 - 启用日志持久化
 - 配置健康检查
+- 数据持久化
 
 ## 使用方法
 
@@ -84,9 +86,13 @@ make docker-build
 ### 必需配置
 - `SECRET_KEY`: JWT密钥
 - `OPENAI_API_KEY`: OpenAI API密钥
+- `MYSQL_USER`: MySQL用户名
+- `MYSQL_PASSWORD`: MySQL密码
+- `MYSQL_DATABASE`: MySQL数据库名
+- `MYSQL_ROOT_PASSWORD`: MySQL root密码
 
 ### 可选配置
-- `DATABASE_URL`: 数据库连接URL
+- `DATABASE_URL`: 数据库连接URL（自动生成）
 - `LOG_LEVEL`: 日志级别
 - `CORS_ORIGINS`: 允许的CORS源
 
@@ -115,6 +121,15 @@ docker-compose -f docker-compose.yaml logs backend
 docker-compose -f docker-compose.yaml logs -f
 ```
 
+## MySQL测试
+
+使用测试脚本验证MySQL连接：
+
+```bash
+# 测试MySQL连接
+./test-mysql.sh
+```
+
 ## 故障排除
 
 ### 常见问题
@@ -123,6 +138,7 @@ docker-compose -f docker-compose.yaml logs -f
 2. **权限问题**: 确保脚本有执行权限
 3. **环境变量**: 检查.env文件配置
 4. **镜像构建失败**: 检查Dockerfile和依赖
+5. **MySQL连接失败**: 检查MySQL容器状态和配置
 
 ### 清理和重置
 

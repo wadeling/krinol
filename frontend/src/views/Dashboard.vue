@@ -15,7 +15,13 @@
             <div class="flex items-center gap-2 text-xs">
               <span class="px-2 py-1 rounded bg-slate-100">EN</span>
               <span class="px-2 py-1 rounded bg-slate-100">Hello,</span>
-              <span class="font-medium">{{ userStore.user?.email || 'user@example.com' }}</span>
+              <span class="font-medium">{{ userStore.user?.username || 'User' }}</span>
+              <button 
+                @click="handleLogout"
+                class="ml-2 text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded transition-colors"
+              >
+                退出
+              </button>
             </div>
           </div>
         </div>
@@ -148,8 +154,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 
+const router = useRouter()
 const userStore = useUserStore()
 
 // 示例候选人数据
@@ -206,6 +214,12 @@ const getScoreClass = (score) => {
   if (score >= 80) return 'score-good'
   if (score >= 70) return 'score-average'
   return 'score-poor'
+}
+
+// 退出登录
+const handleLogout = () => {
+  userStore.logout()
+  router.push('/login')
 }
 
 onMounted(() => {

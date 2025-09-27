@@ -9,11 +9,18 @@ services:
     container_name: krinol-backend-dev
     environment:
       - ENVIRONMENT=development
-      - DATABASE_URL=sqlite:///./resume_analysis.db
+      - DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}
+      - MYSQL_HOST=db
+      - MYSQL_PORT=3306
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
       - SECRET_KEY=dev-secret-key
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     ports:
       - "8000:8000"
+    depends_on:
+      - db
     volumes:
       - ../backend:/app
       - ../backend/uploads:/app/uploads
@@ -32,6 +39,24 @@ services:
       - /app/node_modules
     networks:
       - krinol-dev-network
+
+  db:
+    image: mysql:8.0
+    container_name: krinol-db-dev
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data_dev:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - krinol-dev-network
+
+volumes:
+  mysql_data_dev:
 
 networks:
   krinol-dev-network:
