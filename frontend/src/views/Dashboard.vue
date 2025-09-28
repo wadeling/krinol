@@ -1,24 +1,29 @@
 <template>
-  <div class="min-h-screen bg-slate-50 text-slate-700">
+  <div class="dashboard-container">
     <!-- Top Nav -->
-    <header class="bg-white border-b border-slate-200">
-      <div class="max-w-7xl mx-auto px-4 lg:px-6">
-        <div class="flex items-center h-16 gap-4">
+    <header class="header">
+      <div class="header-content">
+        <div class="header-inner">
           <!-- Brand -->
-          <div class="flex items-center gap-3">
-            <div class="text-2xl font-black text-slate-800">Krinol</div>
+          <div class="brand">
+            <div class="brand-text">Krinol</div>
           </div>
 
+
           <!-- Right side -->
-          <div class="ml-auto flex items-center gap-3">
+          <div class="header-right">
+            <!-- Quick search / Q -->
+            <button class="quick-search-btn" title="Quick Search">
+              Q
+            </button>
             <!-- Language + user -->
-            <div class="flex items-center gap-2 text-xs">
-              <span class="px-2 py-1 rounded bg-slate-100">EN</span>
-              <span class="px-2 py-1 rounded bg-slate-100">Hello,</span>
-              <span class="font-medium">{{ userStore.user?.username || 'User' }}</span>
+            <div class="user-info">
+              <span class="lang-tag">EN</span>
+              <span class="hello-tag">Hello,</span>
+              <span class="username">{{ userStore.user?.username || 'User' }}</span>
               <button 
                 @click="handleLogout"
-                class="ml-2 text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded transition-colors"
+                class="logout-btn"
               >
                 退出
               </button>
@@ -29,63 +34,71 @@
     </header>
 
     <!-- Main -->
-    <main class="max-w-7xl mx-auto px-4 lg:px-6 py-6">
+    <main class="main-content">
       <!-- Quick actions -->
-      <section class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <section class="quick-actions">
         <!-- Resume attachment -->
-        <div class="card action-card p-5 flex items-center gap-4" @click="$router.push('/resumes')">
-          <div class="h-12 w-12 rounded-2xl bg-sky-100 grid place-items-center text-sky-500 text-xl">▣</div>
-          <div>
-            <div class="font-semibold">Resume attachment</div>
-            <div class="text-xs text-slate-500">Import attachments from email</div>
+        <div class="action-card" @click="$router.push('/analysis')">
+          <div class="action-icon resume-icon">▣</div>
+          <div class="action-content">
+            <div class="action-title">Resume attachment</div>
+            <div class="action-subtitle">Import attachments from email</div>
           </div>
         </div>
         
         <!-- Batch analysis -->
-        <div class="card action-card p-5 flex items-center gap-4" @click="$router.push('/analysis')">
-          <div class="h-12 w-12 rounded-2xl bg-emerald-100 grid place-items-center text-emerald-500 text-xl">▥</div>
-          <div>
-            <div class="font-semibold">Batch analysis</div>
-            <div class="text-xs text-slate-500">Parse multiple CVs</div>
+        <div class="action-card" @click="$router.push('/analysis')">
+          <div class="action-icon analysis-icon">▥</div>
+          <div class="action-content">
+            <div class="action-title">Batch analysis</div>
+            <div class="action-subtitle">Parse multiple CVs</div>
           </div>
         </div>
       </section>
 
+
       <!-- Content grid: table left, charts right -->
-      <section class="mt-6 grid grid-cols-12 gap-6">
+      <section class="content-grid">
         <!-- Left: table -->
-        <div class="col-span-12 lg:col-span-8">
-          <div class="card overflow-hidden">
+        <div class="table-container">
+          <div class="card table-card">
             <!-- Table header -->
-            <div class="bg-slate-100/70 px-4 py-2 text-xs font-semibold text-slate-600">
+            <div class="table-header">
               Candidates
             </div>
-            <div class="overflow-auto scrollbar-thin">
-              <table class="w-full text-sm candidates-table">
+            <div class="table-wrapper scrollbar-thin">
+              <table class="candidates-table">
                 <thead>
-                  <tr class="bg-slate-50 text-slate-500">
-                    <th class="text-left font-medium px-4 py-3">Name</th>
-                    <th class="text-left font-medium px-4 py-3">Phone</th>
-                    <th class="text-left font-medium px-4 py-3">Company</th>
-                    <th class="text-left font-medium px-4 py-3">Position</th>
-                    <th class="text-left font-medium px-4 py-3">Location</th>
-                    <th class="text-left font-medium px-4 py-3">Working time</th>
-                    <th class="text-left font-medium px-4 py-3">CV Score</th>
+                  <tr class="table-head-row">
+                    <th class="table-header-cell">Name</th>
+                    <th class="table-header-cell">Phone</th>
+                    <th class="table-header-cell">Company</th>
+                    <th class="table-header-cell">Position</th>
+                    <th class="table-header-cell">Location</th>
+                    <th class="table-header-cell">Working time</th>
+                    <th class="table-header-cell">CV Score</th>
+                    <th class="table-header-cell">Operation</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody class="table-body">
                   <!-- Sample data -->
-                  <tr class="hover:bg-slate-50" v-for="candidate in candidates" :key="candidate.id">
-                    <td class="px-4 py-3 text-sky-600">{{ candidate.name }}</td>
-                    <td class="px-4 py-3">{{ candidate.phone }}</td>
-                    <td class="px-4 py-3 truncate">{{ candidate.company }}</td>
-                    <td class="px-4 py-3">{{ candidate.position }}</td>
-                    <td class="px-4 py-3">{{ candidate.location }}</td>
-                    <td class="px-4 py-3">{{ candidate.workingTime }}</td>
-                    <td class="px-4 py-3">
+                  <tr class="table-row" v-for="candidate in candidates" :key="candidate.id">
+                    <td class="table-cell name-cell">{{ candidate.name }}</td>
+                    <td class="table-cell phone-cell">{{ candidate.phone }}</td>
+                    <td class="table-cell company-cell">{{ candidate.company }}</td>
+                    <td class="table-cell position-cell">{{ candidate.position }}</td>
+                    <td class="table-cell location-cell">{{ candidate.location }}</td>
+                    <td class="table-cell working-time-cell">{{ candidate.workingTime }}</td>
+                    <td class="table-cell score-cell">
                       <span class="score-badge" :class="getScoreClass(candidate.cvScore)">
                         {{ candidate.cvScore }}/100
                       </span>
+                    </td>
+                    <td class="table-cell operation-cell">
+                      <div class="operation-buttons">
+                        <button class="add-talent-btn">Add to talent pool</button>
+                        <span class="status-chip" :class="getStatusClass(candidate.status)">{{ candidate.status }}</span>
+                      </div>
                     </td>
                   </tr>
                 </tbody>
@@ -95,14 +108,14 @@
         </div>
 
         <!-- Right: charts and side panel -->
-        <aside class="col-span-12 lg:col-span-4 space-y-4">
+        <aside class="charts-container">
           <!-- Chart 1 -->
-          <div class="card p-4">
-            <div class="text-sm font-semibold mb-3">Candidate Status Analysis</div>
-            <div class="flex items-center gap-4">
+          <div class="card chart-card">
+            <div class="chart-title">Candidate Status Analysis</div>
+            <div class="chart-content">
               <!-- Donut -->
-              <div class="relative h-28 w-28">
-                <svg viewBox="0 0 36 36" class="h-28 w-28">
+              <div class="chart-donut">
+                <svg viewBox="0 0 36 36" class="donut-svg">
                   <!-- base track -->
                   <circle cx="18" cy="18" r="14.5" fill="none" stroke="#E5E7EB" stroke-width="7"></circle>
                   <!-- arcs (fake data proportions) -->
@@ -112,40 +125,41 @@
                   <circle cx="18" cy="18" r="14.5" fill="none" stroke="#a78bfa" stroke-width="7" stroke-dasharray="10 102" stroke-dashoffset="-55"></circle>
                   <circle cx="18" cy="18" r="14.5" fill="none" stroke="#ef4444" stroke-width="7" stroke-dasharray="12 100" stroke-dashoffset="-65"></circle>
                 </svg>
-                <div class="absolute inset-0 m-auto h-14 w-14 rounded-full bg-white ring-soft"></div>
+                <div class="donut-center ring-soft"></div>
               </div>
               <!-- Legend -->
-              <ul class="text-xs space-y-1">
-                <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-emerald-500"></span> 初步沟通</li>
-                <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-orange-500"></span> 面试安排</li>
-                <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-sky-400"></span> 简历推荐</li>
-                <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-violet-400"></span> Offer</li>
-                <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-red-500"></span> 入职</li>
-                <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-blue-600"></span> 淘汰</li>
+              <ul class="chart-legend">
+                <li class="legend-item"><span class="legend-dot emerald-dot"></span> 初步沟通</li>
+                <li class="legend-item"><span class="legend-dot orange-dot"></span> 面试安排</li>
+                <li class="legend-item"><span class="legend-dot sky-dot"></span> 简历推荐</li>
+                <li class="legend-item"><span class="legend-dot violet-dot"></span> Offer</li>
+                <li class="legend-item"><span class="legend-dot red-dot"></span> 入职</li>
+                <li class="legend-item"><span class="legend-dot blue-dot"></span> 淘汰</li>
               </ul>
             </div>
           </div>
 
           <!-- Chart 2 -->
-          <div class="card p-4">
-            <div class="text-sm font-semibold mb-3">Position Status Analysis</div>
-            <div class="flex items-center gap-4">
-              <div class="relative h-28 w-28">
-                <svg viewBox="0 0 36 36" class="h-28 w-28">
+          <div class="card chart-card">
+            <div class="chart-title">Position Status Analysis</div>
+            <div class="chart-content">
+              <div class="chart-donut">
+                <svg viewBox="0 0 36 36" class="donut-svg">
                   <circle cx="18" cy="18" r="14.5" fill="none" stroke="#E5E7EB" stroke-width="7"></circle>
                   <circle cx="18" cy="18" r="14.5" fill="none" stroke="#10b981" stroke-width="7" stroke-dasharray="40 72" stroke-dashoffset="0"></circle>
                   <circle cx="18" cy="18" r="14.5" fill="none" stroke="#f59e0b" stroke-width="7" stroke-dasharray="25 87" stroke-dashoffset="-40"></circle>
                   <circle cx="18" cy="18" r="14.5" fill="none" stroke="#ef4444" stroke-width="7" stroke-dasharray="15 97" stroke-dashoffset="-65"></circle>
                 </svg>
-                <div class="absolute inset-0 m-auto h-14 w-14 rounded-full bg-white ring-soft"></div>
+                <div class="donut-center ring-soft"></div>
               </div>
-              <ul class="text-xs space-y-1">
-                <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-emerald-500"></span> 已开始</li>
-                <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-amber-500"></span> 进行中</li>
-                <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-rose-500"></span> 已完成</li>
+              <ul class="chart-legend">
+                <li class="legend-item"><span class="legend-dot emerald-dot"></span> 已开始</li>
+                <li class="legend-item"><span class="legend-dot amber-dot"></span> 进行中</li>
+                <li class="legend-item"><span class="legend-dot rose-dot"></span> 已完成</li>
               </ul>
             </div>
           </div>
+
         </aside>
       </section>
     </main>
@@ -216,6 +230,20 @@ const getScoreClass = (score) => {
   return 'score-poor'
 }
 
+// 根据状态返回对应的样式类
+const getStatusClass = (status) => {
+  switch (status) {
+    case 'Deprecated':
+      return 'status-deprecated'
+    case 'Active':
+      return 'status-active'
+    case 'Pending':
+      return 'status-pending'
+    default:
+      return 'status-default'
+  }
+}
+
 // 退出登录
 const handleLogout = () => {
   userStore.logout()
@@ -228,56 +256,513 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-/* 页面特定样式 - 使用全局组件样式 */
+/* Dashboard样式 - 完全参考HTML文件 */
 
-/* 表格特定样式 */
-.candidates-table {
-  .score-badge {
-    @apply px-2 py-1 rounded text-xs font-medium;
-    
-    &.score-excellent {
-      @apply bg-green-100 text-green-800;
-    }
-    
-    &.score-good {
-      @apply bg-blue-100 text-blue-800;
-    }
-    
-    &.score-average {
-      @apply bg-yellow-100 text-yellow-800;
-    }
-    
-    &.score-poor {
-      @apply bg-red-100 text-red-800;
-    }
-  }
+/* 主容器 */
+.dashboard-container {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  color: #334155;
 }
 
-/* 图表容器样式 */
-.chart-container {
-  @apply relative;
+/* 响应式优化 */
+@media (max-width: 768px) {
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
   
-  .chart-legend {
-    @apply text-xs space-y-1;
-    
-    li {
-      @apply flex items-center gap-2;
-      
-      .legend-dot {
-        @apply h-2 w-2 rounded-full;
-      }
-    }
+  .table-wrapper {
+    overflow-x: auto;
+  }
+  
+  .candidates-table {
+    min-width: 600px;
   }
 }
 
-/* 快速操作区域样式 */
+/* 头部样式 */
+.header {
+  background-color: white;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.header-content {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  height: 4rem;
+  gap: 1rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brand-text {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #1e293b;
+}
+
+
+.header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.quick-search-btn {
+  height: 2.25rem;
+  width: 2.25rem;
+  display: grid;
+  place-items: center;
+  border-radius: 0.5rem;
+  background-color: #f1f5f9;
+  border: none;
+  color: #475569;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: #e2e8f0;
+  }
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.lang-tag, .hello-tag {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  background-color: #f1f5f9;
+}
+
+.username {
+  font-weight: 500;
+}
+
+.logout-btn {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background-color: #f1f5f9;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: #e2e8f0;
+  }
+}
+
+/* 主内容区域 */
+.main-content {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+/* 快速操作区域 */
 .quick-actions {
-  .action-card {
-    @apply cursor-pointer hover:shadow-lg transition-shadow;
-    
-    &:hover {
-      transform: translateY(-2px);
-    }
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* 内容网格布局 - 参考HTML文件 */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-top: 0.75rem;
+}
+
+@media (min-width: 1024px) {
+  .content-grid {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+/* 表格容器 */
+.table-container {
+  width: 100%;
+}
+
+.table-card {
+  overflow: hidden;
+}
+
+.table-header {
+  background-color: rgba(241, 245, 249, 0.7);
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.table-wrapper {
+  overflow: auto;
+}
+
+.candidates-table {
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+.table-head-row {
+  background-color: #f8fafc;
+  color: #64748b;
+}
+
+.table-header-cell {
+  text-align: left;
+  font-weight: 500;
+  padding: 0.75rem 1rem;
+}
+
+.table-body {
+  border-top: 1px solid #f1f5f9;
+}
+
+.table-row {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s;
+}
+
+.table-row:hover {
+  background-color: #f8fafc;
+}
+
+.table-cell {
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+}
+
+.name-cell {
+  color: #0ea5e9;
+}
+
+.phone-cell, .working-time-cell {
+  color: #64748b;
+}
+
+.score-cell {
+  text-align: center;
+}
+
+.company-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.operation-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.add-talent-btn {
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+  background-color: #1e293b;
+  color: white;
+  font-size: 0.75rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: #334155;
+  }
+}
+
+.status-chip {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  
+  &.status-deprecated {
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+  
+  &.status-active {
+    background-color: #dcfce7;
+    color: #166534;
+  }
+  
+  &.status-pending {
+    background-color: #dbeafe;
+    color: #1e40af;
+  }
+  
+  &.status-default {
+    background-color: #f1f5f9;
+    color: #64748b;
+  }
+}
+
+/* CV Score 样式 */
+.score-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  display: inline-block;
+  
+  &.score-excellent {
+    background-color: #dcfce7;
+    color: #166534;
+  }
+  
+  &.score-good {
+    background-color: #dbeafe;
+    color: #1e40af;
+  }
+  
+  &.score-average {
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+  
+  &.score-poor {
+    background-color: #fee2e2;
+    color: #991b1b;
+  }
+}
+
+/* 图表容器 */
+.charts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+
+.chart-card {
+  padding: 1rem;
+}
+
+.chart-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.chart-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.chart-donut {
+  position: relative;
+  height: 7rem;
+  width: 7rem;
+  flex-shrink: 0;
+}
+
+.donut-svg {
+  height: 7rem;
+  width: 7rem;
+}
+
+.donut-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 3.5rem;
+  width: 3.5rem;
+  border-radius: 50%;
+  background-color: white;
+}
+
+.chart-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.75rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.legend-dot {
+  height: 0.5rem;
+  width: 0.5rem;
+  border-radius: 50%;
+}
+
+.emerald-dot {
+  background-color: #10b981;
+}
+
+.orange-dot {
+  background-color: #f97316;
+}
+
+.sky-dot {
+  background-color: #38bdf8;
+}
+
+.violet-dot {
+  background-color: #a78bfa;
+}
+
+.red-dot {
+  background-color: #ef4444;
+}
+
+.blue-dot {
+  background-color: #2563eb;
+}
+
+.amber-dot {
+  background-color: #f59e0b;
+}
+
+.rose-dot {
+  background-color: #f43f5e;
+}
+
+.action-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  box-shadow: 
+    0 10px 15px -3px rgba(0,0,0,0.08),
+    0 4px 6px -2px rgba(0,0,0,0.03);
+  transition: all 0.2s ease;
+  
+  &:hover {
+    box-shadow: 
+      0 20px 25px -5px rgba(0,0,0,0.1),
+      0 10px 10px -5px rgba(0,0,0,0.04);
+    transform: translateY(-1px);
+  }
+}
+
+.action-icon {
+  height: 3rem;
+  width: 3rem;
+  border-radius: 1rem;
+  display: grid;
+  place-items: center;
+  font-size: 1.25rem;
+}
+
+.resume-icon {
+  background-color: #e0f2fe;
+  color: #0ea5e9;
+}
+
+.analysis-icon {
+  background-color: #dcfce7;
+  color: #10b981;
+}
+
+.action-content {
+  flex: 1;
+}
+
+.action-title {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.action-subtitle {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* 卡片样式 */
+.card {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 
+    0 10px 15px -3px rgba(0,0,0,0.08),
+    0 4px 6px -2px rgba(0,0,0,0.03);
+}
+
+/* 环形装饰样式 */
+.ring-soft {
+  box-shadow: inset 0 0 0 10px rgba(255,255,255,1);
+}
+
+/* 滚动条样式 */
+.scrollbar-thin {
+  &::-webkit-scrollbar { 
+    height: 8px; 
+    width: 8px; 
+  }
+  
+  &::-webkit-scrollbar-thumb { 
+    background: #D1D5DB; 
+    border-radius: 8px; 
+  }
+  
+  &::-webkit-scrollbar-track { 
+    background: transparent; 
+  }
+}
+
+/* 分数标签样式 */
+.score-badge {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  
+  &.score-excellent {
+    background-color: #dcfce7;
+    color: #166534;
+  }
+  
+  &.score-good {
+    background-color: #dbeafe;
+    color: #1e40af;
+  }
+  
+  &.score-average {
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+  
+  &.score-poor {
+    background-color: #fee2e2;
+    color: #991b1b;
   }
 }
 </style>

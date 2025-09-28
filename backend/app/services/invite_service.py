@@ -8,6 +8,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import Column, String, DateTime, Boolean, Integer, Text
 from app.models.invite_models import InviteCode, InviteCodeCreate, InviteCodeValidateResponse
 from app.database import Base
+from app.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class InviteCode(Base):
@@ -76,6 +79,7 @@ class InviteService:
             InviteCodeValidateResponse: 验证结果
         """
         invite_code = await self.get_invite_code(code)
+        logger.info(f"邀请码: {invite_code}")
         
         if not invite_code:
             return InviteCodeValidateResponse(

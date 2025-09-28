@@ -12,7 +12,7 @@ const userStore = useUserStore()
 
 onMounted(() => {
   // 初始化用户状态
-  userStore.initAuth()
+  userStore.initUser()
 })
 </script>
 

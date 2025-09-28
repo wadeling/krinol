@@ -74,7 +74,7 @@ class Settings(BaseSettings):
     
     # CORS配置
     cors_origins: list = Field(
-        default=["http://localhost:3000", "http://localhost:8080"],
+        default=["http://localhost:3000", "http://localhost:8080", "http://localhost", "http://localhost:80"],
         description="允许的CORS源"
     )
     

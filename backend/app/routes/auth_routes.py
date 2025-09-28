@@ -21,6 +21,9 @@ from app.utils.auth import create_access_token
 from app.utils.password import verify_password, get_password_hash
 from app.config.settings import get_settings
 from app.database import get_db
+from app.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["认证"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
@@ -61,6 +64,7 @@ async def validate_invite_code(
     """
     验证邀请码
     """
+    logger.info(f"验证邀请码: {invite_data.invite_code}")
     invite_service = InviteService(db)
     result = await invite_service.validate_invite_code(invite_data.invite_code)
     return result

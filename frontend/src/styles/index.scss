@@ -1,5 +1,10 @@
 // 全局样式文件 - 符合CSS规范
 
+// 导入Tailwind CSS
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 // 重置样式
 * {
   margin: 0;

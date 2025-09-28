@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config.settings import get_settings
@@ -7,13 +8,23 @@ from app.database import create_tables
 # 获取配置
 settings = get_settings()
 
+# 定义lifespan事件处理器
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """应用生命周期管理"""
+    # 启动时执行
+    create_tables()
+    yield
+    # 关闭时执行（如果需要的话）
+
 # 创建FastAPI应用
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
     description="基于大模型的简历分析系统",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan
 )
 
 # 配置CORS
@@ -24,12 +35,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# 创建数据库表
-@app.on_event("startup")
-async def startup_event():
-    """应用启动事件"""
-    create_tables()
 
 # 注册路由
 app.include_router(auth_routes.router)

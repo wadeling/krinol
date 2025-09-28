@@ -126,9 +126,10 @@
                 required
                 class="form-input"
                 placeholder="请输入邀请码"
+                @input="validateInviteCode"
                 @blur="validateInviteCode"
               />
-              <p v-if="inviteCodeStatus" class="form-message" :class="inviteCodeStatus.isValid ? 'success' : 'error'">
+              <p v-if="inviteCodeStatus" class="form-message" :class="inviteCodeStatus.is_valid ? 'success' : 'error'">
                 {{ inviteCodeStatus.message }}
               </p>
             </div>
@@ -210,8 +211,9 @@
 
             <button
               type="submit"
-              :disabled="isLoading || !inviteCodeStatus?.isValid"
+              :disabled="isLoading || !inviteCodeStatus?.is_valid"
               class="login-btn"
+              @click="console.log('按钮点击，邀请码状态:', inviteCodeStatus, '是否禁用:', isLoading || !inviteCodeStatus?.is_valid)"
             >
               {{ isLoading ? '注册中...' : '注册' }}
             </button>
@@ -277,18 +279,29 @@ export default {
 
     // 验证邀请码
     const validateInviteCode = async () => {
-      if (!registerForm.inviteCode) return
+      if (!registerForm.inviteCode) {
+        inviteCodeStatus.value = null
+        console.log('邀请码为空，清空状态')
+        return
+      }
       
+      console.log('开始验证邀请码:', registerForm.inviteCode)
       try {
         const response = await api.post('/auth/validate-invite', {
           invite_code: registerForm.inviteCode
         })
         inviteCodeStatus.value = response.data
+        console.log('邀请码验证结果:', response.data)
+        console.log('邀请码状态:', inviteCodeStatus.value)
+        console.log('邀请码是否有效:', inviteCodeStatus.value?.isValid)
+        console.log('直接访问is_valid:', response.data.is_valid)
       } catch (error) {
         inviteCodeStatus.value = {
           isValid: false,
           message: '邀请码验证失败'
         }
+        console.log('邀请码验证失败:', error)
+        console.log('邀请码状态:', inviteCodeStatus.value)
       }
     }
     
