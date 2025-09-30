@@ -3,7 +3,6 @@
 """
 
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from app.config.settings import get_settings
 
@@ -20,8 +19,8 @@ engine = create_engine(
 # 创建会话工厂
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# 创建基础模型类
-Base = declarative_base()
+# 导入Base（从db_models中）
+from app.models.db_models import Base
 
 
 def get_db():
@@ -42,7 +41,8 @@ def create_tables():
     """
     创建数据库表
     """
-    from app.models.user_models import User
+    from app.services.user_service import User
     from app.models.invite_models import InviteCode
+    from app.models.db_models import ResumeDB, AnalysisResultDB
     
     Base.metadata.create_all(bind=engine)

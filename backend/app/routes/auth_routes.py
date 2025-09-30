@@ -11,9 +11,10 @@ import jwt
 from jwt import PyJWTError
 
 from app.models.user_models import (
-    User, UserCreate, UserLogin, UserRegister, UserRegisterWithInvite,
+    UserCreate, UserLogin, UserRegister, UserRegisterWithInvite,
     Token, TokenData, UserResponse, InviteCodeValidate
 )
+from app.services.user_service import User
 from app.models.invite_models import InviteCode, InviteCodeValidateResponse
 from app.services.user_service import UserService
 from app.services.invite_service import InviteService

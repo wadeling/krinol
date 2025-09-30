@@ -4,13 +4,12 @@
 """
 
 from .resume_models import ResumeData, AnalysisResult, AnalysisRequest
-from .user_models import User, UserCreate, UserResponse
+from .user_models import UserCreate, UserResponse
 
 __all__ = [
     "ResumeData",
     "AnalysisResult", 
     "AnalysisRequest",
-    "User",
     "UserCreate",
     "UserResponse"
 ]

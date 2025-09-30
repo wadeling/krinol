@@ -18,7 +18,7 @@ def setup_logging(level: str = "INFO", log_file: Optional[str] = None):
     """
     # 创建日志格式
     formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        '%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s'
     )
     
     # 配置根日志器

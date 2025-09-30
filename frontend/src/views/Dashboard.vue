@@ -38,7 +38,7 @@
       <!-- Quick actions -->
       <section class="quick-actions">
         <!-- Resume attachment -->
-        <div class="action-card" @click="$router.push('/analysis')">
+        <div class="action-card" @click="showUploadModal = true">
           <div class="action-icon resume-icon">▣</div>
           <div class="action-content">
             <div class="action-title">Resume attachment</div>
@@ -163,6 +163,12 @@
         </aside>
       </section>
     </main>
+
+    <!-- File Upload Modal -->
+    <FileUploadModal 
+      v-model:visible="showUploadModal" 
+      @upload-success="handleUploadSuccess"
+    />
   </div>
 </template>
 
@@ -170,9 +176,13 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import FileUploadModal from '@/components/FileUploadModal.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
+
+// 文件上传弹窗状态
+const showUploadModal = ref(false)
 
 // 示例候选人数据
 const candidates = ref([
@@ -242,6 +252,13 @@ const getStatusClass = (status) => {
     default:
       return 'status-default'
   }
+}
+
+// 处理文件上传成功
+const handleUploadSuccess = (response) => {
+  console.log('文件上传成功:', response)
+  // 这里可以添加成功提示或其他逻辑
+  // 比如刷新候选人列表等
 }
 
 // 退出登录

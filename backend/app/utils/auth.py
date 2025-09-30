@@ -11,7 +11,7 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
 from app.config.settings import get_settings
-from app.models.user_models import User, TokenData
+from app.models.user_models import TokenData
 from app.database import get_db
 
 settings = get_settings()
@@ -68,6 +68,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     """
     FastAPI依赖函数：获取当前用户
     """
+    from ..utils.logger import get_logger
+    logger = get_logger(__name__)
+    
+    logger.info(f"开始验证用户身份，token: {token[:20] if token else 'None'}...")
+    
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -77,15 +82,21 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
+        logger.info(f"JWT解析成功，用户名: {username}")
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username)
-    except PyJWTError:
+    except PyJWTError as e:
+        logger.error(f"JWT解析失败: {str(e)}")
         raise credentials_exception
     
     # 直接查询用户，避免循环导入
-    from app.models.user_models import User as UserModel
+    from app.services.user_service import User as UserModel
+    logger.info(f"开始查询用户: {username}")
     user = db.query(UserModel).filter(UserModel.username == token_data.username).first()
     if user is None:
+        logger.error(f"用户不存在: {username}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    
+    logger.info(f"用户验证成功: {user.username}")
     return user

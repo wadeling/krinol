@@ -7,7 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status
 from typing import List
 
 from ..models.resume_models import AnalysisRequest, AnalysisResponse, AnalysisResult
-from ..models.user_models import UserResponse, User
+from ..models.user_models import UserResponse
+from ..services.user_service import User
 from ..services.resume_service import ResumeService
 from ..services.ai_service import AIService
 from ..utils.auth import get_current_user
@@ -44,7 +45,7 @@ async def analyze_resume(
         if not resume:
             raise HTTPException(status_code=404, detail="简历不存在")
         
-        if resume.user_id != current_user.id:
+        if resume.user_id != str(current_user.id):
             raise HTTPException(status_code=403, detail="无权分析此简历")
         
         # 创建分析任务

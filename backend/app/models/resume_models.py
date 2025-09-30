@@ -32,6 +32,26 @@ class ResumeData(BaseModel):
     file_size: int = Field(..., description="文件大小（字节）")
     upload_time: datetime = Field(default_factory=datetime.now)
     user_id: Optional[str] = Field(None, description="上传用户ID")
+    
+    # 新增字段
+    file_path: Optional[str] = Field(None, description="文件存储路径")
+    processing_status: str = Field(default="pending", description="处理状态")
+    extracted_info: Optional[Dict[str, Any]] = Field(None, description="AI提取的信息")
+    processing_error: Optional[str] = Field(None, description="处理错误信息")
+    processed_at: Optional[datetime] = Field(None, description="处理完成时间")
+    
+    # AI提取的字段
+    name: Optional[str] = Field(None, description="姓名")
+    age: Optional[int] = Field(None, description="年龄")
+    school_name: Optional[str] = Field(None, description="学校名称")
+    school_city: Optional[str] = Field(None, description="学校所在城市")
+    education_level: Optional[str] = Field(None, description="学历层次")
+    major: Optional[str] = Field(None, description="专业")
+    graduation_year: Optional[str] = Field(None, description="毕业年份")
+    phone: Optional[str] = Field(None, description="手机号")
+    email: Optional[str] = Field(None, description="邮箱")
+    work_experience: Optional[List[Dict[str, Any]]] = Field(None, description="工作经历")
+    projects: Optional[List[Dict[str, Any]]] = Field(None, description="项目经验")
 
 
 class AnalysisRequest(BaseModel):

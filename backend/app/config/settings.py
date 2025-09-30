@@ -49,6 +49,10 @@ class Settings(BaseSettings):
         default="",
         description="OpenAI API密钥"
     )
+    openai_base_url: str = Field(
+        default="https://api.openai.com/v1",
+        description="OpenAI API基础地址"
+    )
     openai_model: str = Field(
         default="gpt-3.5-turbo",
         description="OpenAI模型名称"
@@ -63,20 +67,30 @@ class Settings(BaseSettings):
         default=10 * 1024 * 1024,  # 10MB
         description="最大文件大小（字节）"
     )
-    allowed_file_types: list = Field(
-        default=["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "text/plain"],
-        description="允许的文件类型"
+    allowed_file_types: str = Field(
+        default="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain",
+        description="允许的文件类型，用逗号分隔"
     )
+    
+    @property
+    def allowed_file_types_list(self) -> list:
+        """将逗号分隔的字符串转换为列表"""
+        return [file_type.strip() for file_type in self.allowed_file_types.split(",")]
     
     # 日志配置
     log_level: str = Field(default="INFO", description="日志级别")
     log_file: Optional[str] = Field(default=None, description="日志文件路径")
     
     # CORS配置
-    cors_origins: list = Field(
-        default=["http://localhost:3000", "http://localhost:8080", "http://localhost", "http://localhost:80"],
-        description="允许的CORS源"
+    cors_origins: str = Field(
+        default="http://localhost:3000,http://localhost:8080,http://localhost,http://localhost:80",
+        description="允许的CORS源，用逗号分隔"
     )
+    
+    @property
+    def cors_origins_list(self) -> list:
+        """将逗号分隔的字符串转换为列表"""
+        return [origin.strip() for origin in self.cors_origins.split(",")]
     
     model_config = {
         "env_file": ".env",

@@ -4,9 +4,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config.settings import get_settings
 from app.routes import auth_routes, resume_routes, analysis_routes
 from app.database import create_tables
+from app.utils.logger import get_logger, setup_logging
 
 # 获取配置
 settings = get_settings()
+
+# 初始化日志配置
+setup_logging(level=settings.log_level, log_file=settings.log_file)
+logger = get_logger(__name__)
+logger.info("应用启动中...")
 
 # 定义lifespan事件处理器
 @asynccontextmanager
@@ -30,7 +36,7 @@ app = FastAPI(
 # 配置CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -40,6 +46,7 @@ app.add_middleware(
 app.include_router(auth_routes.router)
 app.include_router(resume_routes.router)
 app.include_router(analysis_routes.router)
+logger.info("路由注册完成")
 
 
 @app.get("/")

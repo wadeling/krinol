@@ -6,6 +6,8 @@ services:
     image: krinol-backend:latest
     container_name: krinol-backend-prod
     restart: unless-stopped
+    env_file:
+      - envfile
     environment:
       - ENVIRONMENT=production
       - DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}
@@ -15,7 +17,6 @@ services:
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - SECRET_KEY=${SECRET_KEY}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
     ports:
       - "8000:8000"
     depends_on:
@@ -29,6 +30,8 @@ services:
     image: krinol-frontend:latest
     container_name: krinol-frontend-prod
     restart: unless-stopped
+    env_file:
+      - .env
     ports:
       - "80:80"
     depends_on:
