@@ -30,8 +30,6 @@ services:
     image: krinol-frontend:latest
     container_name: krinol-frontend-prod
     restart: unless-stopped
-    env_file:
-      - .env
     ports:
       - "80:80"
     depends_on:
@@ -43,6 +41,8 @@ services:
     image: mysql:8.0
     container_name: krinol-db-prod
     restart: unless-stopped
+    env_file:
+      - envfile
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}

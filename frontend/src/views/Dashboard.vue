@@ -72,10 +72,10 @@
                   <tr class="table-head-row">
                     <th class="table-header-cell">Name</th>
                     <th class="table-header-cell">Phone</th>
-                    <th class="table-header-cell">Company</th>
-                    <th class="table-header-cell">Position</th>
-                    <th class="table-header-cell">Location</th>
-                    <th class="table-header-cell">Working time</th>
+                    <th class="table-header-cell">School</th>
+                    <th class="table-header-cell">Graduation Year</th>
+                    <th class="table-header-cell">City</th>
+                    <th class="table-header-cell">Email</th>
                     <th class="table-header-cell">CV Score</th>
                     <th class="table-header-cell">Operation</th>
                   </tr>
@@ -83,21 +83,21 @@
                 <tbody class="table-body">
                   <!-- Sample data -->
                   <tr class="table-row" v-for="candidate in candidates" :key="candidate.id">
-                    <td class="table-cell name-cell">{{ candidate.name }}</td>
-                    <td class="table-cell phone-cell">{{ candidate.phone }}</td>
-                    <td class="table-cell company-cell">{{ candidate.company }}</td>
-                    <td class="table-cell position-cell">{{ candidate.position }}</td>
-                    <td class="table-cell location-cell">{{ candidate.location }}</td>
-                    <td class="table-cell working-time-cell">{{ candidate.workingTime }}</td>
+                    <td class="table-cell name-cell">{{ candidate.name || 'N/A' }}</td>
+                    <td class="table-cell phone-cell">{{ candidate.phone || 'N/A' }}</td>
+                    <td class="table-cell company-cell">{{ candidate.school_name || 'N/A' }}</td>
+                    <td class="table-cell position-cell">{{ candidate.graduation_year || 'N/A' }}</td>
+                    <td class="table-cell location-cell">{{ candidate.school_city || 'N/A' }}</td>
+                    <td class="table-cell working-time-cell">{{ candidate.email || 'N/A' }}</td>
                     <td class="table-cell score-cell">
                       <span class="score-badge" :class="getScoreClass(candidate.cvScore)">
-                        {{ candidate.cvScore }}/100
+                        {{ candidate.cvScore || 0 }}/100
                       </span>
                     </td>
                     <td class="table-cell operation-cell">
                       <div class="operation-buttons">
                         <button class="add-talent-btn">Add to talent pool</button>
-                        <span class="status-chip" :class="getStatusClass(candidate.status)">{{ candidate.status }}</span>
+                        <span class="status-chip" :class="getStatusClass(candidate.status)">{{ candidate.status || 'Unknown' }}</span>
                       </div>
                     </td>
                   </tr>
@@ -176,61 +176,18 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { useResumeStore } from '@/stores/resume'
 import FileUploadModal from '@/components/FileUploadModal.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
+const resumeStore = useResumeStore()
 
 // 文件上传弹窗状态
 const showUploadModal = ref(false)
 
-// 示例候选人数据
-const candidates = ref([
-  {
-    id: 1,
-    name: 'Rick',
-    phone: '156662781098',
-    company: '用友软件股份有限公司苏州分公司',
-    position: '销售工程师',
-    location: '江苏-苏州',
-    workingTime: '7',
-    cvScore: 85,
-    status: 'Deprecated'
-  },
-  {
-    id: 2,
-    name: 'Sarah',
-    phone: '13812345678',
-    company: '腾讯科技（深圳）有限公司',
-    position: '前端开发工程师',
-    location: '广东-深圳',
-    workingTime: '5',
-    cvScore: 92,
-    status: 'Active'
-  },
-  {
-    id: 3,
-    name: 'Mike',
-    phone: '13987654321',
-    company: '阿里巴巴（中国）有限公司',
-    position: '产品经理',
-    location: '浙江-杭州',
-    workingTime: '8',
-    cvScore: 78,
-    status: 'Pending'
-  },
-  {
-    id: 4,
-    name: 'Lisa',
-    phone: '13765432109',
-    company: '字节跳动科技有限公司',
-    position: 'UI设计师',
-    location: '北京-朝阳',
-    workingTime: '3',
-    cvScore: 88,
-    status: 'Active'
-  }
-])
+// 候选人数据 - 从简历数据转换而来
+const candidates = ref([])
 
 // 根据分数返回对应的样式类
 const getScoreClass = (score) => {
@@ -254,11 +211,53 @@ const getStatusClass = (status) => {
   }
 }
 
+// 获取候选人数据
+const fetchCandidates = async () => {
+  try {
+    await resumeStore.fetchResumes()
+    // 将简历数据转换为候选人数据格式
+    candidates.value = resumeStore.resumes.map(resume => ({
+      id: resume.id,
+      name: resume.name || 'N/A',
+      phone: resume.phone || 'N/A',
+      school_name: resume.school_name || 'N/A',
+      graduation_year: resume.graduation_year || 'N/A',
+      school_city: resume.school_city || 'N/A',
+      email: resume.email || 'N/A',
+      cvScore: calculateCVScore(resume), // 根据简历内容计算分数
+      status: getResumeStatus(resume) // 根据简历状态确定候选人状态
+    }))
+  } catch (error) {
+    console.error('获取候选人数据失败:', error)
+  }
+}
+
+// 计算简历分数（简单实现）
+const calculateCVScore = (resume) => {
+  let score = 0
+  if (resume.name) score += 10
+  if (resume.phone) score += 10
+  if (resume.email) score += 10
+  if (resume.school_name) score += 15
+  if (resume.major) score += 15
+  if (resume.graduation_year) score += 10
+  if (resume.work_experience && resume.work_experience.length > 0) score += 20
+  if (resume.projects && resume.projects.length > 0) score += 20
+  return Math.min(score, 100)
+}
+
+// 根据简历状态确定候选人状态
+const getResumeStatus = (resume) => {
+  if (resume.processing_status === 'completed') return 'Active'
+  if (resume.processing_status === 'failed') return 'Deprecated'
+  return 'Pending'
+}
+
 // 处理文件上传成功
 const handleUploadSuccess = (response) => {
   console.log('文件上传成功:', response)
-  // 这里可以添加成功提示或其他逻辑
-  // 比如刷新候选人列表等
+  // 刷新候选人列表
+  fetchCandidates()
 }
 
 // 退出登录
@@ -269,6 +268,7 @@ const handleLogout = () => {
 
 onMounted(() => {
   // 初始化数据
+  fetchCandidates()
 })
 </script>
 
