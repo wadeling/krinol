@@ -6,6 +6,7 @@ AI服务
 import openai
 import json
 import asyncio
+import os
 from typing import Dict, Any, Optional
 from ..config.settings import get_settings
 from ..utils.logger import get_logger
@@ -24,6 +25,247 @@ class AIService:
             api_key=settings.openai_api_key,
             base_url=settings.openai_base_url,
         )
+        
+        # 加载评分数据
+        self._load_scoring_data()
+    
+    def _load_scoring_data(self):
+        """加载评分相关数据"""
+        try:
+            # 获取数据文件路径
+            data_dir = os.path.join(os.path.dirname(__file__), "..", "..", "data")
+            
+            # 加载985院校数据
+            with open(os.path.join(data_dir, "985.json"), "r", encoding="utf-8") as f:
+                self.universities_985 = json.load(f)
+            
+            # 加载211院校数据
+            with open(os.path.join(data_dir, "211.json"), "r", encoding="utf-8") as f:
+                self.universities_211 = json.load(f)
+            
+            # 加载专业匹配数据
+            with open(os.path.join(data_dir, "major.json"), "r", encoding="utf-8") as f:
+                self.major_rules = json.load(f)
+            
+            logger.info("评分数据加载成功")
+            
+        except Exception as e:
+            logger.error(f"评分数据加载失败: {str(e)}")
+            # 设置默认数据
+            self.universities_985 = []
+            self.universities_211 = []
+            self.major_rules = {}
+    
+    async def score_resume(self, markdown_content: str, extracted_info: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        对简历进行评分
+        
+        Args:
+            markdown_content: Markdown格式的简历内容
+            extracted_info: AI提取的简历信息
+            
+        Returns:
+            Dict[str, Any]: 评分结果
+        """
+        try:
+            logger.info("开始对简历进行评分")
+            
+            prompt = self._build_scoring_prompt(markdown_content, extracted_info)
+            
+            response = await self._call_openai(prompt)
+            
+            # 解析AI返回的JSON
+            scoring_result = self._parse_scoring_response(response)
+            
+            logger.info(f"简历评分完成: {scoring_result}")
+            
+            return scoring_result
+            
+        except Exception as e:
+            logger.error(f"简历评分失败: {str(e)}")
+            return self._get_default_scoring_result()
+    
+    def _build_scoring_prompt(self, content: str, extracted_info: Dict[str, Any]) -> str:
+        """
+        构建评分提示词
+        
+        Args:
+            content: 简历内容
+            extracted_info: 提取的信息
+            
+        Returns:
+            str: 提示词
+        """
+        # 构建985院校列表
+        universities_985_list = [uni["school_name"] for uni in self.universities_985]
+        universities_211_list = [uni["school_name"] for uni in self.universities_211]
+        
+        # 构建专业匹配规则
+        computer_majors = self.major_rules.get("专业分类规则", {}).get("计算机类专业", {}).get("核心关键词", []) + \
+                         self.major_rules.get("专业分类规则", {}).get("计算机类专业", {}).get("扩展关键词", [])
+        related_majors = self.major_rules.get("专业分类规则", {}).get("相关理工科专业", {}).get("核心关键词", []) + \
+                        self.major_rules.get("专业分类规则", {}).get("相关理工科专业", {}).get("扩展关键词", [])
+        
+        prompt = f"""
+请根据以下评分规则对简历进行量化评分：
+
+## 评分规则
+
+### 一、地域筛选（基础项 | 最高+5分）
++5分：四川省内高校
++3分：四川省外重点高校
++0分：其他
+
+### 二、学校选择（核心项 | 最高+10分）
++10分：985院校
++8分：211院校
++5分：普通本科院校
++2分：专科院校
+
+### 三、专业匹配（分级项 | 最高+8分）
++8分：计算机科学、软件工程、人工智能等计算机相关专业
++5分：通信、电气、电子信息等其他理工科专业
++2分：其他专业
+
+### 四、个人亮点（差异化项 | 最高+10分，取单项最高分，不累计）
++10分：ACM等权威编程竞赛获奖
++8分：持有Kubernetes等专业领域权威证书
++6分：拥有活跃的GitHub/Gitee个人项目（Star数 ≥ 50）
++4分：维护有高质量的技术博客（如CSDN）
+
+### 五、项目经历（实践项 | 最高+10分）
++10分：有知名互联网大厂（如字节跳动、腾讯）实习经历
++7分：有其他公司的完整项目实习经历
+
+### 六、简历质量（形式项 | 最高+5分，可累计）
++2分：排版工整、美观，无错别字
++2分：成果量化（如："性能提升30%"）
++1分：使用主动性动词（如："主导"、"独立完成"）
+
+## 参考数据
+
+### 985院校名单：
+{', '.join(universities_985_list)}
+
+### 211院校名单：
+{', '.join(universities_211_list)}
+
+### 计算机相关专业关键词：
+{', '.join(computer_majors)}
+
+### 其他理工科专业关键词：
+{', '.join(related_majors)}
+
+## 简历信息
+姓名：{extracted_info.get('name', '未知')}
+学校：{extracted_info.get('school_name', '未知')}
+专业：{extracted_info.get('major', '未知')}
+学历：{extracted_info.get('education_level', '未知')}
+
+## 简历内容
+{content}
+
+请严格按照评分规则进行评分，并以JSON格式返回结果：
+
+{{
+    "total_score": 总分,
+    "score_details": {{
+        "region_score": {{
+            "score": 地域筛选得分,
+            "reason": "评分原因"
+        }},
+        "school_score": {{
+            "score": 学校选择得分,
+            "reason": "评分原因"
+        }},
+        "major_score": {{
+            "score": 专业匹配得分,
+            "reason": "评分原因"
+        }},
+        "highlight_score": {{
+            "score": 个人亮点得分,
+            "reason": "评分原因"
+        }},
+        "experience_score": {{
+            "score": 项目经历得分,
+            "reason": "评分原因"
+        }},
+        "quality_score": {{
+            "score": 简历质量得分,
+            "reason": "评分原因"
+        }}
+    }}
+}}
+
+注意：
+1. 总分应该是各维度得分的总和
+2. 每个维度的得分不能超过其最高分
+3. 个人亮点只取最高的一项得分，不累计
+4. 简历质量可以累计得分
+5. 请确保JSON格式正确
+
+请只返回JSON格式的结果，不要包含其他内容。
+"""
+        return prompt
+    
+    def _parse_scoring_response(self, response: str) -> Dict[str, Any]:
+        """
+        解析评分响应
+        
+        Args:
+            response: AI原始响应
+            
+        Returns:
+            Dict[str, Any]: 解析后的评分结果
+        """
+        try:
+            # 清理响应内容
+            response = response.strip()
+            
+            # 移除可能的markdown代码块标记
+            if response.startswith('```json'):
+                response = response[7:]
+            if response.endswith('```'):
+                response = response[:-3]
+            
+            # 解析JSON
+            scoring_result = json.loads(response)
+            
+            # 验证必要字段
+            if not isinstance(scoring_result, dict):
+                raise ValueError("AI响应不是有效的JSON对象")
+            
+            if "total_score" not in scoring_result or "score_details" not in scoring_result:
+                raise ValueError("AI响应缺少必要字段")
+            
+            return scoring_result
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"评分响应JSON解析失败: {str(e)}")
+            logger.error(f"原始响应: {response}")
+            return self._get_default_scoring_result()
+        except Exception as e:
+            logger.error(f"评分响应解析失败: {str(e)}")
+            return self._get_default_scoring_result()
+    
+    def _get_default_scoring_result(self) -> Dict[str, Any]:
+        """
+        获取默认评分结果（当AI评分失败时）
+        
+        Returns:
+            Dict[str, Any]: 默认评分结果
+        """
+        return {
+            "total_score": 0,
+            "score_details": {
+                "region_score": {"score": 0, "reason": "评分失败"},
+                "school_score": {"score": 0, "reason": "评分失败"},
+                "major_score": {"score": 0, "reason": "评分失败"},
+                "highlight_score": {"score": 0, "reason": "评分失败"},
+                "experience_score": {"score": 0, "reason": "评分失败"},
+                "quality_score": {"score": 0, "reason": "评分失败"}
+            }
+        }
     
     async def extract_resume_info(self, markdown_content: str) -> Dict[str, Any]:
         """

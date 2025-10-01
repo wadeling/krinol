@@ -52,6 +52,10 @@ class ResumeData(BaseModel):
     email: Optional[str] = Field(None, description="邮箱")
     work_experience: Optional[List[Dict[str, Any]]] = Field(None, description="工作经历")
     projects: Optional[List[Dict[str, Any]]] = Field(None, description="项目经验")
+    
+    # 评分相关字段
+    score: Optional[int] = Field(None, description="简历总分")
+    score_detail: Optional[Dict[str, Any]] = Field(None, description="各维度详细得分")
 
 
 class AnalysisRequest(BaseModel):

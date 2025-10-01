@@ -46,6 +46,10 @@ class ResumeDB(Base):
     email = Column(String(100), nullable=True)
     work_experience = Column(JSON, nullable=True)
     projects = Column(JSON, nullable=True)
+    
+    # 评分相关字段
+    score = Column(Integer, nullable=True, comment="简历总分")
+    score_detail = Column(JSON, nullable=True, comment="各维度详细得分")
 
 
 class AnalysisResultDB(Base):

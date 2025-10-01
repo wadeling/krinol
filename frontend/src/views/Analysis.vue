@@ -256,6 +256,82 @@ const handleResumeChange = (resumeId) => {
   // 可以在这里添加简历选择后的逻辑
 }
 
+// 从评分详情中提取优势
+const extractStrengths = (scoreDetail) => {
+  const strengths = []
+  if (scoreDetail.school_score?.score >= 8) {
+    strengths.push('优秀的教育背景')
+  }
+  if (scoreDetail.major_score?.score >= 8) {
+    strengths.push('专业匹配度高')
+  }
+  if (scoreDetail.experience_score?.score >= 7) {
+    strengths.push('丰富的实践经验')
+  }
+  if (scoreDetail.highlight_score?.score >= 6) {
+    strengths.push('突出的个人亮点')
+  }
+  return strengths.length > 0 ? strengths : ['基础条件良好']
+}
+
+// 从评分详情中提取不足
+const extractWeaknesses = (scoreDetail) => {
+  const weaknesses = []
+  if (scoreDetail.region_score?.score < 3) {
+    weaknesses.push('地理位置优势不足')
+  }
+  if (scoreDetail.school_score?.score < 5) {
+    weaknesses.push('教育背景有待提升')
+  }
+  if (scoreDetail.major_score?.score < 5) {
+    weaknesses.push('专业匹配度一般')
+  }
+  if (scoreDetail.experience_score?.score < 5) {
+    weaknesses.push('实践经验不足')
+  }
+  if (scoreDetail.quality_score?.score < 3) {
+    weaknesses.push('简历质量有待提升')
+  }
+  return weaknesses.length > 0 ? weaknesses : ['整体表现良好']
+}
+
+// 生成改进建议
+const generateRecommendations = (scoreDetail) => {
+  const recommendations = []
+  if (scoreDetail.school_score?.score < 8) {
+    recommendations.push('考虑继续深造或获取相关证书')
+  }
+  if (scoreDetail.experience_score?.score < 7) {
+    recommendations.push('增加实习或项目经验')
+  }
+  if (scoreDetail.highlight_score?.score < 6) {
+    recommendations.push('参与技术竞赛或开源项目')
+  }
+  if (scoreDetail.quality_score?.score < 4) {
+    recommendations.push('优化简历格式和内容表达')
+  }
+  return recommendations.length > 0 ? recommendations : ['保持当前优势']
+}
+
+// 生成技能差距
+const generateSkillGaps = (scoreDetail) => {
+  const gaps = []
+  if (scoreDetail.major_score?.score < 8) {
+    gaps.push('计算机相关技能')
+  }
+  if (scoreDetail.experience_score?.score < 7) {
+    gaps.push('实际项目经验')
+  }
+  return gaps
+}
+
+// 提取证书信息
+const extractCertifications = (resume) => {
+  // 这里可以根据简历内容提取证书信息
+  // 暂时返回空数组
+  return []
+}
+
 const startAnalysis = async () => {
   if (!analysisFormRef.value) return
   
@@ -269,30 +345,40 @@ const startAnalysis = async () => {
           job_requirements: analysisForm.jobRequirements || null
         })
         
-        // 模拟分析结果（实际应该轮询获取结果）
-        setTimeout(() => {
+        // 获取选中简历的评分信息
+        const selectedResume = resumeStore.resumes.find(r => r.id === analysisForm.resumeId)
+        if (selectedResume && selectedResume.score_detail) {
+          // 使用数据库中的评分详情
+          const scoreDetail = selectedResume.score_detail
           currentAnalysis.value = {
-            overall_score: 85,
-            strengths: ['具有5年相关工作经验', '掌握多种编程语言', '有团队管理经验'],
-            weaknesses: ['缺乏云计算经验', '英语水平有待提高', '项目管理证书不足'],
-            recommendations: ['学习AWS或Azure云平台', '参加英语培训课程', '考取PMP项目管理证书'],
+            overall_score: selectedResume.score || 0,
+            score_details: scoreDetail,
+            strengths: extractStrengths(scoreDetail),
+            weaknesses: extractWeaknesses(scoreDetail),
+            recommendations: generateRecommendations(scoreDetail),
             experience_analysis: {
-              years_of_experience: 5,
-              relevant_experience: '在软件开发领域有丰富经验',
-              career_progression: '从初级开发到技术主管'
+              years_of_experience: selectedResume.work_experience?.length || 0,
+              relevant_experience: selectedResume.work_experience?.map(exp => exp.description).join('; ') || '无',
+              career_progression: selectedResume.work_experience?.map(exp => exp.position).join(' → ') || '无'
             },
             skills_analysis: {
-              technical_skills: ['Python', 'Java', 'React', 'MySQL'],
+              technical_skills: selectedResume.skills || [],
               soft_skills: ['团队协作', '问题解决', '沟通能力'],
-              skill_gaps: ['云计算', 'DevOps', '微服务架构']
+              skill_gaps: generateSkillGaps(scoreDetail)
             },
             education_analysis: {
-              education_level: '本科',
-              relevant_education: '计算机科学与技术专业',
-              certifications: ['Oracle认证', 'Scrum Master']
+              education_level: selectedResume.education_level || '未知',
+              relevant_education: selectedResume.major || '未知',
+              certifications: extractCertifications(selectedResume)
             }
           }
-        }, 2000)
+        } else {
+          // 如果没有评分信息，显示提示
+          currentAnalysis.value = {
+            overall_score: 0,
+            message: '该简历尚未完成评分，请稍后再试'
+          }
+        }
         
         ElMessage.success('分析已开始，请稍候...')
       } catch (error) {

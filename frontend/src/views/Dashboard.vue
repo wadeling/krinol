@@ -90,9 +90,19 @@
                     <td class="table-cell location-cell">{{ candidate.school_city || 'N/A' }}</td>
                     <td class="table-cell working-time-cell">{{ candidate.email || 'N/A' }}</td>
                     <td class="table-cell score-cell">
-                      <span class="score-badge" :class="getScoreClass(candidate.cvScore)">
-                        {{ candidate.cvScore || 0 }}/100
-                      </span>
+                      <div class="score-container">
+                        <span class="score-badge" :class="getScoreClass(candidate.cvScore)">
+                          {{ candidate.cvScore || 0 }}/48
+                        </span>
+                        <button 
+                          v-if="candidate.scoreDetail" 
+                          class="score-detail-btn" 
+                          @click="showScoreDetail(candidate)"
+                          title="查看详细评分"
+                        >
+                          📊
+                        </button>
+                      </div>
                     </td>
                     <td class="table-cell operation-cell">
                       <div class="operation-buttons">
@@ -189,12 +199,12 @@ const showUploadModal = ref(false)
 // 候选人数据 - 从简历数据转换而来
 const candidates = ref([])
 
-// 根据分数返回对应的样式类
+// 根据分数返回对应的样式类（满分48分）
 const getScoreClass = (score) => {
-  if (score >= 90) return 'score-excellent'
-  if (score >= 80) return 'score-good'
-  if (score >= 70) return 'score-average'
-  return 'score-poor'
+  if (score >= 40) return 'score-excellent'  // 40分以上为优秀
+  if (score >= 30) return 'score-good'       // 30-39分为良好
+  if (score >= 20) return 'score-average'    // 20-29分为一般
+  return 'score-poor'                        // 20分以下为较差
 }
 
 // 根据状态返回对应的样式类
@@ -224,7 +234,8 @@ const fetchCandidates = async () => {
       graduation_year: resume.graduation_year || 'N/A',
       school_city: resume.school_city || 'N/A',
       email: resume.email || 'N/A',
-      cvScore: calculateCVScore(resume), // 根据简历内容计算分数
+      cvScore: resume.score || 0, // 使用数据库中的评分
+      scoreDetail: resume.score_detail || null, // 详细评分信息
       status: getResumeStatus(resume) // 根据简历状态确定候选人状态
     }))
   } catch (error) {
@@ -232,25 +243,37 @@ const fetchCandidates = async () => {
   }
 }
 
-// 计算简历分数（简单实现）
-const calculateCVScore = (resume) => {
-  let score = 0
-  if (resume.name) score += 10
-  if (resume.phone) score += 10
-  if (resume.email) score += 10
-  if (resume.school_name) score += 15
-  if (resume.major) score += 15
-  if (resume.graduation_year) score += 10
-  if (resume.work_experience && resume.work_experience.length > 0) score += 20
-  if (resume.projects && resume.projects.length > 0) score += 20
-  return Math.min(score, 100)
-}
 
 // 根据简历状态确定候选人状态
 const getResumeStatus = (resume) => {
   if (resume.processing_status === 'completed') return 'Active'
   if (resume.processing_status === 'failed') return 'Deprecated'
   return 'Pending'
+}
+
+// 显示评分详情
+const showScoreDetail = (candidate) => {
+  if (!candidate.scoreDetail) return
+  
+  const detail = candidate.scoreDetail
+  const scoreNames = {
+    region_score: '地域筛选',
+    school_score: '学校选择', 
+    major_score: '专业匹配',
+    highlight_score: '个人亮点',
+    experience_score: '项目经历',
+    quality_score: '简历质量'
+  }
+  
+  let message = `候选人：${candidate.name}\n总分：${candidate.cvScore}/48\n\n各维度得分：\n`
+  
+  Object.entries(detail).forEach(([key, value]) => {
+    if (typeof value === 'object' && value.score !== undefined) {
+      message += `${scoreNames[key] || key}：${value.score}分 - ${value.reason}\n`
+    }
+  })
+  
+  alert(message)
 }
 
 // 处理文件上传成功
@@ -780,6 +803,27 @@ onMounted(() => {
   &.score-poor {
     background-color: #fee2e2;
     color: #991b1b;
+  }
+}
+
+/* 评分容器样式 */
+.score-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.score-detail-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background-color: #f3f4f6;
   }
 }
 </style>

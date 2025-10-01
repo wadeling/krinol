@@ -162,11 +162,32 @@ async def process_resume_async(file_id: str, file_path: str, user_id: str):
                     "summary": None
                 }
             
-            # 3. 更新数据库记录
+            # 3. 使用AI进行简历评分
+            try:
+                scoring_result = await ai_service.score_resume(markdown_content, extracted_info)
+                logger.info(f"简历评分完成: {scoring_result}")
+            except Exception as e:
+                logger.warning(f"AI评分失败，使用默认评分: {str(e)}")
+                # 使用默认评分
+                scoring_result = {
+                    "total_score": 0,
+                    "score_details": {
+                        "region_score": {"score": 0, "reason": "评分失败"},
+                        "school_score": {"score": 0, "reason": "评分失败"},
+                        "major_score": {"score": 0, "reason": "评分失败"},
+                        "highlight_score": {"score": 0, "reason": "评分失败"},
+                        "experience_score": {"score": 0, "reason": "评分失败"},
+                        "quality_score": {"score": 0, "reason": "评分失败"}
+                    }
+                }
+            
+            # 4. 更新数据库记录
             resume_service.update_resume_content(
                 resume_id=file_id,
                 content=markdown_content,
-                extracted_info=extracted_info
+                extracted_info=extracted_info,
+                score=scoring_result.get("total_score", 0),
+                score_detail=scoring_result.get("score_details", {})
             )
             
             logger.info(f"简历处理完成: {file_id}")

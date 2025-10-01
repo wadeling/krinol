@@ -154,7 +154,10 @@ class ResumeService:
                     phone=db_resume.phone,
                     email=db_resume.email,
                     work_experience=db_resume.work_experience,
-                    projects=db_resume.projects
+                    projects=db_resume.projects,
+                    # 评分字段
+                    score=db_resume.score,
+                    score_detail=db_resume.score_detail
                 )
             return None
         else:
@@ -199,7 +202,10 @@ class ResumeService:
                     phone=db_resume.phone,
                     email=db_resume.email,
                     work_experience=db_resume.work_experience,
-                    projects=db_resume.projects
+                    projects=db_resume.projects,
+                    # 评分字段
+                    score=db_resume.score,
+                    score_detail=db_resume.score_detail
                 )
                 for db_resume in db_resumes
             ]
@@ -207,7 +213,7 @@ class ResumeService:
             # 回退到内存存储
             return [resume for resume in self._resumes.values() if resume.user_id == user_id]
     
-    def update_resume_content(self, resume_id: str, content: str, extracted_info: Dict[str, Any]) -> bool:
+    def update_resume_content(self, resume_id: str, content: str, extracted_info: Dict[str, Any], score: int = None, score_detail: Dict[str, Any] = None) -> bool:
         """
         更新简历内容和提取的信息
         
@@ -215,6 +221,8 @@ class ResumeService:
             resume_id: 简历ID
             content: 简历内容
             extracted_info: 提取的信息
+            score: 简历总分
+            score_detail: 各维度详细得分
             
         Returns:
             bool: 更新是否成功
@@ -228,6 +236,12 @@ class ResumeService:
                     db_resume.extracted_info = extracted_info
                     db_resume.processing_status = "completed"
                     db_resume.processed_at = datetime.now()
+                    
+                    # 更新评分字段
+                    if score is not None:
+                        db_resume.score = score
+                    if score_detail is not None:
+                        db_resume.score_detail = score_detail
                     
                     # 从AI提取的信息中提取字段并写入对应列
                     logger.info(f"开始处理AI提取信息: {resume_id}, extracted_info类型: {type(extracted_info)}")
