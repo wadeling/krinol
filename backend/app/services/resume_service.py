@@ -176,7 +176,13 @@ class ResumeService:
         """
         if self.db:
             # 使用数据库
-            db_resumes = self.db.query(ResumeDB).filter(ResumeDB.user_id == user_id).all()
+            db_resumes = (
+                self.db.query(ResumeDB)
+                .filter(ResumeDB.user_id == user_id)
+                .filter(ResumeDB.name.isnot(None))
+                .filter(ResumeDB.name != "")
+                .all()
+            )
             return [
                 ResumeData(
                     id=db_resume.id,

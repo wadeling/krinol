@@ -42,12 +42,12 @@
           <div class="action-icon resume-icon">▣</div>
           <div class="action-content">
             <div class="action-title">Resume attachment</div>
-            <div class="action-subtitle">Import attachments from email</div>
+            <div class="action-subtitle">Upload resume attachments</div>
           </div>
         </div>
         
         <!-- Batch analysis -->
-        <div class="action-card" @click="$router.push('/analysis')">
+        <div class="action-card action-card-disabled">
           <div class="action-icon analysis-icon">▥</div>
           <div class="action-content">
             <div class="action-title">Batch analysis</div>
@@ -119,57 +119,7 @@
 
         <!-- Right: charts and side panel -->
         <aside class="charts-container">
-          <!-- Chart 1 -->
-          <div class="card chart-card">
-            <div class="chart-title">Candidate Status Analysis</div>
-            <div class="chart-content">
-              <!-- Donut -->
-              <div class="chart-donut">
-                <svg viewBox="0 0 36 36" class="donut-svg">
-                  <!-- base track -->
-                  <circle cx="18" cy="18" r="14.5" fill="none" stroke="#E5E7EB" stroke-width="7"></circle>
-                  <!-- arcs (fake data proportions) -->
-                  <circle cx="18" cy="18" r="14.5" fill="none" stroke="#22c55e" stroke-width="7" stroke-dasharray="22 90" stroke-dashoffset="0"></circle>
-                  <circle cx="18" cy="18" r="14.5" fill="none" stroke="#f97316" stroke-width="7" stroke-dasharray="15 97" stroke-dashoffset="-22"></circle>
-                  <circle cx="18" cy="18" r="14.5" fill="none" stroke="#38bdf8" stroke-width="7" stroke-dasharray="18 94" stroke-dashoffset="-37"></circle>
-                  <circle cx="18" cy="18" r="14.5" fill="none" stroke="#a78bfa" stroke-width="7" stroke-dasharray="10 102" stroke-dashoffset="-55"></circle>
-                  <circle cx="18" cy="18" r="14.5" fill="none" stroke="#ef4444" stroke-width="7" stroke-dasharray="12 100" stroke-dashoffset="-65"></circle>
-                </svg>
-                <div class="donut-center ring-soft"></div>
-              </div>
-              <!-- Legend -->
-              <ul class="chart-legend">
-                <li class="legend-item"><span class="legend-dot emerald-dot"></span> 初步沟通</li>
-                <li class="legend-item"><span class="legend-dot orange-dot"></span> 面试安排</li>
-                <li class="legend-item"><span class="legend-dot sky-dot"></span> 简历推荐</li>
-                <li class="legend-item"><span class="legend-dot violet-dot"></span> Offer</li>
-                <li class="legend-item"><span class="legend-dot red-dot"></span> 入职</li>
-                <li class="legend-item"><span class="legend-dot blue-dot"></span> 淘汰</li>
-              </ul>
-            </div>
-          </div>
-
-          <!-- Chart 2 -->
-          <div class="card chart-card">
-            <div class="chart-title">Position Status Analysis</div>
-            <div class="chart-content">
-              <div class="chart-donut">
-                <svg viewBox="0 0 36 36" class="donut-svg">
-                  <circle cx="18" cy="18" r="14.5" fill="none" stroke="#E5E7EB" stroke-width="7"></circle>
-                  <circle cx="18" cy="18" r="14.5" fill="none" stroke="#10b981" stroke-width="7" stroke-dasharray="40 72" stroke-dashoffset="0"></circle>
-                  <circle cx="18" cy="18" r="14.5" fill="none" stroke="#f59e0b" stroke-width="7" stroke-dasharray="25 87" stroke-dashoffset="-40"></circle>
-                  <circle cx="18" cy="18" r="14.5" fill="none" stroke="#ef4444" stroke-width="7" stroke-dasharray="15 97" stroke-dashoffset="-65"></circle>
-                </svg>
-                <div class="donut-center ring-soft"></div>
-              </div>
-              <ul class="chart-legend">
-                <li class="legend-item"><span class="legend-dot emerald-dot"></span> 已开始</li>
-                <li class="legend-item"><span class="legend-dot amber-dot"></span> 进行中</li>
-                <li class="legend-item"><span class="legend-dot rose-dot"></span> 已完成</li>
-              </ul>
-            </div>
-          </div>
-
+          <!-- Charts removed -->
         </aside>
       </section>
     </main>
@@ -509,7 +459,7 @@ onMounted(() => {
 
 @media (min-width: 1024px) {
   .content-grid {
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 1fr;
   }
 }
 
@@ -663,104 +613,8 @@ onMounted(() => {
   }
 }
 
-/* 图表容器 */
-.charts-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
 
 
-.chart-card {
-  padding: 1rem;
-}
-
-.chart-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-}
-
-.chart-content {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.chart-donut {
-  position: relative;
-  height: 7rem;
-  width: 7rem;
-  flex-shrink: 0;
-}
-
-.donut-svg {
-  height: 7rem;
-  width: 7rem;
-}
-
-.donut-center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  height: 3.5rem;
-  width: 3.5rem;
-  border-radius: 50%;
-  background-color: white;
-}
-
-.chart-legend {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  font-size: 0.75rem;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
-}
-
-.legend-dot {
-  height: 0.5rem;
-  width: 0.5rem;
-  border-radius: 50%;
-}
-
-.emerald-dot {
-  background-color: #10b981;
-}
-
-.orange-dot {
-  background-color: #f97316;
-}
-
-.sky-dot {
-  background-color: #38bdf8;
-}
-
-.violet-dot {
-  background-color: #a78bfa;
-}
-
-.red-dot {
-  background-color: #ef4444;
-}
-
-.blue-dot {
-  background-color: #2563eb;
-}
-
-.amber-dot {
-  background-color: #f59e0b;
-}
-
-.rose-dot {
-  background-color: #f43f5e;
-}
 
 .action-card {
   background-color: white;
@@ -780,6 +634,18 @@ onMounted(() => {
       0 20px 25px -5px rgba(0,0,0,0.1),
       0 10px 10px -5px rgba(0,0,0,0.04);
     transform: translateY(-1px);
+  }
+}
+
+.action-card-disabled {
+  cursor: default;
+  opacity: 0.6;
+  
+  &:hover {
+    box-shadow: 
+      0 10px 15px -3px rgba(0,0,0,0.08),
+      0 4px 6px -2px rgba(0,0,0,0.03);
+    transform: none;
   }
 }
 

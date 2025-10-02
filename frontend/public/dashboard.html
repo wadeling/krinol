@@ -114,12 +114,12 @@
         <div class="h-12 w-12 rounded-2xl bg-sky-100 grid place-items-center text-sky-500 text-xl">▣</div>
         <div>
           <div class="font-semibold">Resume attachment</div>
-          <div class="text-xs text-slate-500">Import attachments from email</div>
+          <div class="text-xs text-slate-500">Upload resume attachments</div>
         </div>
       </div>
       
       <!-- Batch analysis -->
-      <div class="card p-5 flex items-center gap-4 cursor-pointer hover:shadow-lg transition-shadow">
+      <div class="card p-5 flex items-center gap-4">
         <div class="h-12 w-12 rounded-2xl bg-emerald-100 grid place-items-center text-emerald-500 text-xl">▥</div>
         <div>
           <div class="font-semibold">Batch analysis</div>
@@ -128,10 +128,10 @@
       </div>
     </section>
 
-    <!-- Content grid: table left, charts right -->
+    <!-- Content grid: table full width -->
     <section class="mt-6 grid grid-cols-12 gap-6">
-      <!-- Left: table -->
-      <div class="col-span-12 lg:col-span-8">
+      <!-- Full width table -->
+      <div class="col-span-12">
         <div class="card overflow-hidden">
           <!-- Table header -->
           <div class="bg-slate-100/70 px-4 py-2 text-xs font-semibold text-slate-600">
@@ -207,56 +207,7 @@
 
       <!-- Right: charts and side panel -->
       <aside class="col-span-12 lg:col-span-4 space-y-4">
-        <!-- Chart 1 -->
-        <div class="card p-4">
-          <div class="text-sm font-semibold mb-3">Candidate Status Analysis</div>
-          <div class="flex items-center gap-4">
-            <!-- Donut -->
-            <div class="relative h-28 w-28">
-              <svg viewBox="0 0 36 36" class="h-28 w-28">
-                <!-- base track -->
-                <circle cx="18" cy="18" r="14.5" fill="none" stroke="#E5E7EB" stroke-width="7"></circle>
-                <!-- arcs (fake data proportions) -->
-                <circle cx="18" cy="18" r="14.5" fill="none" stroke="#22c55e" stroke-width="7" stroke-dasharray="22 90" stroke-dashoffset="0"></circle>
-                <circle cx="18" cy="18" r="14.5" fill="none" stroke="#f97316" stroke-width="7" stroke-dasharray="15 97" stroke-dashoffset="-22"></circle>
-                <circle cx="18" cy="18" r="14.5" fill="none" stroke="#38bdf8" stroke-width="7" stroke-dasharray="18 94" stroke-dashoffset="-37"></circle>
-                <circle cx="18" cy="18" r="14.5" fill="none" stroke="#a78bfa" stroke-width="7" stroke-dasharray="10 102" stroke-dashoffset="-55"></circle>
-                <circle cx="18" cy="18" r="14.5" fill="none" stroke="#ef4444" stroke-width="7" stroke-dasharray="12 100" stroke-dashoffset="-65"></circle>
-              </svg>
-              <div class="absolute inset-0 m-auto h-14 w-14 rounded-full bg-white ring-soft"></div>
-            </div>
-            <!-- Legend -->
-            <ul class="text-xs space-y-1">
-              <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-emerald-500"></span> 初步沟通</li>
-              <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-orange-500"></span> 面试安排</li>
-              <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-sky-400"></span> 简历推荐</li>
-              <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-violet-400"></span> Offer</li>
-              <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-red-500"></span> 入职</li>
-              <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-blue-600"></span> 淘汰</li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Chart 2 -->
-        <div class="card p-4">
-          <div class="text-sm font-semibold mb-3">Position Status Analysis</div>
-          <div class="flex items-center gap-4">
-            <div class="relative h-28 w-28">
-              <svg viewBox="0 0 36 36" class="h-28 w-28">
-                <circle cx="18" cy="18" r="14.5" fill="none" stroke="#E5E7EB" stroke-width="7"></circle>
-                <circle cx="18" cy="18" r="14.5" fill="none" stroke="#10b981" stroke-width="7" stroke-dasharray="40 72" stroke-dashoffset="0"></circle>
-                <circle cx="18" cy="18" r="14.5" fill="none" stroke="#f59e0b" stroke-width="7" stroke-dasharray="25 87" stroke-dashoffset="-40"></circle>
-                <circle cx="18" cy="18" r="14.5" fill="none" stroke="#ef4444" stroke-width="7" stroke-dasharray="15 97" stroke-dashoffset="-65"></circle>
-              </svg>
-              <div class="absolute inset-0 m-auto h-14 w-14 rounded-full bg-white ring-soft"></div>
-            </div>
-            <ul class="text-xs space-y-1">
-              <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-emerald-500"></span> 已开始</li>
-              <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-amber-500"></span> 进行中</li>
-              <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-rose-500"></span> 已完成</li>
-            </ul>
-          </div>
-        </div>
+        <!-- Charts removed -->
       </aside>
     </section>
   </main>
