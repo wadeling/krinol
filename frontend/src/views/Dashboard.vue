@@ -179,11 +179,52 @@
       v-model:visible="showUploadModal" 
       @upload-success="handleUploadSuccess"
     />
+
+    <!-- Score Detail Modal -->
+    <div v-if="showScoreDetailModal" class="modal-overlay" @click="closeScoreDetailModal">
+      <div class="score-detail-modal" @click.stop>
+        <div class="modal-header">
+          <h3 class="modal-title">评分详情</h3>
+          <button class="modal-close" @click="closeScoreDetailModal">×</button>
+        </div>
+        <div class="modal-content">
+          <div class="candidate-info">
+            <h4>{{ currentCandidate?.name }}</h4>
+            <div class="total-score">
+              <span class="score-label">总分：</span>
+              <span class="score-value" :class="getScoreClass(currentCandidate?.cvScore)">
+                {{ currentCandidate?.cvScore || 0 }}/48
+              </span>
+            </div>
+          </div>
+          
+          <div class="score-breakdown">
+            <h5>各维度得分：</h5>
+            <div v-if="!currentScoreDetail" class="no-data">
+              暂无评分详情数据
+            </div>
+            <div v-else class="score-items">
+              <div 
+                v-for="(detail, key) in currentScoreDetail" 
+                :key="key"
+                class="score-item"
+              >
+                <div class="score-item-header">
+                  <span class="score-item-name">{{ getScoreItemName(key) }}</span>
+                  <span class="score-item-points">{{ detail.score }}分</span>
+                </div>
+                <div class="score-item-reason">{{ detail.reason }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useResumeStore } from '@/stores/resume'
@@ -198,6 +239,11 @@ const showUploadModal = ref(false)
 
 // 候选人数据 - 从简历数据转换而来
 const candidates = ref([])
+
+// 评分详情弹窗状态
+const showScoreDetailModal = ref(false)
+const currentScoreDetail = ref(null)
+const currentCandidate = ref(null)
 
 // 根据分数返回对应的样式类（满分48分）
 const getScoreClass = (score) => {
@@ -253,9 +299,35 @@ const getResumeStatus = (resume) => {
 
 // 显示评分详情
 const showScoreDetail = (candidate) => {
-  if (!candidate.scoreDetail) return
+  if (!candidate.scoreDetail) {
+    console.log('No score detail found for candidate:', candidate)
+    return
+  }
   
-  const detail = candidate.scoreDetail
+  console.log('Score detail data:', candidate.scoreDetail)
+  console.log('Score detail keys:', Object.keys(candidate.scoreDetail))
+  
+  currentCandidate.value = candidate
+  // 强制创建一个新的对象来触发响应式更新
+  currentScoreDetail.value = { ...candidate.scoreDetail }
+  showScoreDetailModal.value = true
+  
+  // 延迟检查数据是否正确设置
+  setTimeout(() => {
+    console.log('Current score detail after setting:', currentScoreDetail.value)
+    console.log('Keys after setting:', Object.keys(currentScoreDetail.value))
+  }, 100)
+}
+
+// 关闭评分详情弹窗
+const closeScoreDetailModal = () => {
+  showScoreDetailModal.value = false
+  currentScoreDetail.value = null
+  currentCandidate.value = null
+}
+
+// 获取评分项目名称
+const getScoreItemName = (key) => {
   const scoreNames = {
     region_score: '地域筛选',
     school_score: '学校选择', 
@@ -264,17 +336,14 @@ const showScoreDetail = (candidate) => {
     experience_score: '项目经历',
     quality_score: '简历质量'
   }
-  
-  let message = `候选人：${candidate.name}\n总分：${candidate.cvScore}/48\n\n各维度得分：\n`
-  
-  Object.entries(detail).forEach(([key, value]) => {
-    if (typeof value === 'object' && value.score !== undefined) {
-      message += `${scoreNames[key] || key}：${value.score}分 - ${value.reason}\n`
-    }
-  })
-  
-  alert(message)
+  return scoreNames[key] || key
 }
+
+// 检查是否有有效的评分项目
+const hasValidScoreItems = computed(() => {
+  if (!currentScoreDetail.value) return false
+  return Object.keys(currentScoreDetail.value).length > 0
+})
 
 // 处理文件上传成功
 const handleUploadSuccess = (response) => {
@@ -824,6 +893,222 @@ onMounted(() => {
   
   &:hover {
     background-color: #f3f4f6;
+  }
+}
+
+/* 评分详情弹窗样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.score-detail-modal {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 600px;
+  width: 100%;
+  max-height: 80vh;
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 1.5rem 0 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1.5rem;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: #f3f4f6;
+    color: #374151;
+  }
+}
+
+.modal-content {
+  padding: 0 1.5rem 1.5rem 1.5rem;
+  overflow-y: auto;
+  max-height: calc(80vh - 120px);
+}
+
+.candidate-info {
+  margin-bottom: 1.5rem;
+  
+  h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 0.75rem 0;
+  }
+}
+
+.total-score {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.score-label {
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.score-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  
+  &.score-excellent {
+    background-color: #dcfce7;
+    color: #166534;
+  }
+  
+  &.score-good {
+    background-color: #dbeafe;
+    color: #1e40af;
+  }
+  
+  &.score-average {
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+  
+  &.score-poor {
+    background-color: #fee2e2;
+    color: #991b1b;
+  }
+}
+
+.score-breakdown {
+  h5 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 1rem 0;
+  }
+}
+
+.score-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.score-item {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: #f3f4f6;
+    border-color: #d1d5db;
+  }
+}
+
+.score-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.score-item-name {
+  font-weight: 500;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.score-item-points {
+  font-weight: 600;
+  color: #111827;
+  background-color: #e5e7eb;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.score-item-reason {
+  color: #6b7280;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.no-data {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+  padding: 2rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px dashed #d1d5db;
+}
+
+.debug-info {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-top: 1rem;
+  
+  p {
+    margin: 0 0 0.5rem 0;
+    font-weight: 500;
+    color: #92400e;
+  }
+  
+  pre {
+    background: white;
+    padding: 0.75rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    overflow-x: auto;
+    margin: 0;
+    color: #374151;
   }
 }
 </style>
