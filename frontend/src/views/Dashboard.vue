@@ -72,6 +72,7 @@
                   <tr class="table-head-row">
                     <th class="table-header-cell">Name</th>
                     <th class="table-header-cell">Phone</th>
+                    <th class="table-header-cell">Position</th>
                     <th class="table-header-cell">School</th>
                     <th class="table-header-cell">Graduation Year</th>
                     <th class="table-header-cell">City</th>
@@ -85,8 +86,9 @@
                   <tr class="table-row" v-for="candidate in candidates" :key="candidate.id">
                     <td class="table-cell name-cell">{{ candidate.name || 'N/A' }}</td>
                     <td class="table-cell phone-cell">{{ candidate.phone || 'N/A' }}</td>
+                    <td class="table-cell position-cell">{{ candidate.position || 'N/A' }}</td>
                     <td class="table-cell company-cell">{{ candidate.school_name || 'N/A' }}</td>
-                    <td class="table-cell position-cell">{{ candidate.graduation_year || 'N/A' }}</td>
+                    <td class="table-cell graduation-year-cell">{{ candidate.graduation_year || 'N/A' }}</td>
                     <td class="table-cell location-cell">{{ candidate.school_city || 'N/A' }}</td>
                     <td class="table-cell working-time-cell">{{ candidate.email || 'N/A' }}</td>
                     <td class="table-cell score-cell">
@@ -226,6 +228,7 @@ const fetchCandidates = async () => {
       id: resume.id,
       name: resume.name || 'N/A',
       phone: resume.phone || 'N/A',
+      position: resume.position || 'N/A',
       school_name: resume.school_name || 'N/A',
       graduation_year: resume.graduation_year || 'N/A',
       school_city: resume.school_city || 'N/A',
@@ -524,6 +527,15 @@ onMounted(() => {
 
 .phone-cell, .working-time-cell {
   color: #64748b;
+}
+
+.position-cell {
+  color: #059669;
+  font-weight: 500;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .score-cell {

@@ -320,6 +320,7 @@ class AIService:
     "graduation_year": "毕业年份",
     "phone": "手机号",
     "email": "邮箱",
+    "position": "求职岗位",
     "work_experience": [
         {{
             "company": "公司名称",

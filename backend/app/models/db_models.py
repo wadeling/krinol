@@ -44,6 +44,7 @@ class ResumeDB(Base):
     graduation_year = Column(String(10), nullable=True)
     phone = Column(String(20), nullable=True)
     email = Column(String(100), nullable=True)
+    position = Column(String(200), nullable=True, comment='求职岗位')
     work_experience = Column(JSON, nullable=True)
     projects = Column(JSON, nullable=True)
     

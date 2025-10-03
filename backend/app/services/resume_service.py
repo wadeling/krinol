@@ -104,7 +104,23 @@ class ResumeService:
                 processing_status=resume_data.processing_status,
                 extracted_info=resume_data.extracted_info,
                 processing_error=resume_data.processing_error,
-                processed_at=resume_data.processed_at
+                processed_at=resume_data.processed_at,
+                # AI提取的字段
+                name=resume_data.name,
+                age=resume_data.age,
+                school_name=resume_data.school_name,
+                school_city=resume_data.school_city,
+                education_level=resume_data.education_level,
+                major=resume_data.major,
+                graduation_year=resume_data.graduation_year,
+                phone=resume_data.phone,
+                email=resume_data.email,
+                position=resume_data.position,
+                work_experience=resume_data.work_experience,
+                projects=resume_data.projects,
+                # 评分字段
+                score=resume_data.score,
+                score_detail=resume_data.score_detail
             )
             self.db.add(db_resume)
             self.db.commit()
@@ -153,6 +169,7 @@ class ResumeService:
                     graduation_year=db_resume.graduation_year,
                     phone=db_resume.phone,
                     email=db_resume.email,
+                    position=db_resume.position,
                     work_experience=db_resume.work_experience,
                     projects=db_resume.projects,
                     # 评分字段
@@ -207,6 +224,7 @@ class ResumeService:
                     graduation_year=db_resume.graduation_year,
                     phone=db_resume.phone,
                     email=db_resume.email,
+                    position=db_resume.position,
                     work_experience=db_resume.work_experience,
                     projects=db_resume.projects,
                     # 评分字段
@@ -264,6 +282,7 @@ class ResumeService:
                         db_resume.graduation_year = extracted_info.get('graduation_year')
                         db_resume.phone = extracted_info.get('phone')
                         db_resume.email = extracted_info.get('email')
+                        db_resume.position = extracted_info.get('position')
                         db_resume.work_experience = extracted_info.get('work_experience', [])
                         db_resume.projects = extracted_info.get('projects', [])
                         

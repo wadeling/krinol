@@ -50,6 +50,7 @@ class ResumeData(BaseModel):
     graduation_year: Optional[str] = Field(None, description="毕业年份")
     phone: Optional[str] = Field(None, description="手机号")
     email: Optional[str] = Field(None, description="邮箱")
+    position: Optional[str] = Field(None, description="求职岗位")
     work_experience: Optional[List[Dict[str, Any]]] = Field(None, description="工作经历")
     projects: Optional[List[Dict[str, Any]]] = Field(None, description="项目经验")
     
