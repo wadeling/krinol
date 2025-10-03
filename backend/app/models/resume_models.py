@@ -109,3 +109,14 @@ class AnalysisResponse(BaseModel):
     status: AnalysisStatus = Field(..., description="分析状态")
     result: Optional[AnalysisResult] = Field(None, description="分析结果")
     message: str = Field(..., description="响应消息")
+
+
+class PaginatedResumeResponse(BaseModel):
+    """分页简历响应模型"""
+    items: List[ResumeData] = Field(..., description="简历列表")
+    total: int = Field(..., description="总记录数")
+    page: int = Field(..., description="当前页码")
+    page_size: int = Field(..., description="每页记录数")
+    total_pages: int = Field(..., description="总页数")
+    has_next: bool = Field(..., description="是否有下一页")
+    has_prev: bool = Field(..., description="是否有上一页")

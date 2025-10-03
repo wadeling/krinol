@@ -8,13 +8,35 @@ export const useResumeStore = defineStore('resume', () => {
   const resumes = ref([])
   const currentResume = ref(null)
   const loading = ref(false)
+  const pagination = ref({
+    page: 1,
+    pageSize: 10,
+    total: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrev: false
+  })
 
   // 动作
-  const fetchResumes = async () => {
+  const fetchResumes = async (page = 1, pageSize = 10) => {
     try {
       loading.value = true
-      const response = await api.get('/resumes/')
-      resumes.value = response.data
+      const response = await api.get('/resumes/', {
+        params: { page, page_size: pageSize }
+      })
+      
+      // 更新简历数据
+      resumes.value = response.data.items
+      
+      // 更新分页信息
+      pagination.value = {
+        page: response.data.page,
+        pageSize: response.data.page_size,
+        total: response.data.total,
+        totalPages: response.data.total_pages,
+        hasNext: response.data.has_next,
+        hasPrev: response.data.has_prev
+      }
     } catch (error) {
       ElMessage.error('获取简历列表失败')
       console.error('获取简历列表失败:', error)
@@ -78,6 +100,7 @@ export const useResumeStore = defineStore('resume', () => {
     resumes,
     currentResume,
     loading,
+    pagination,
     fetchResumes,
     uploadResume,
     getResume,

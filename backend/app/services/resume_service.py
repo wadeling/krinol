@@ -181,26 +181,44 @@ class ResumeService:
             # 回退到内存存储
             return self._resumes.get(resume_id)
     
-    def get_user_resumes(self, user_id: str) -> List[ResumeData]:
+    def get_user_resumes(self, user_id: str, page: int = 1, page_size: int = 10) -> tuple[List[ResumeData], int]:
         """
-        获取用户的所有简历
+        获取用户的所有简历（支持分页）
         
         Args:
             user_id: 用户ID
+            page: 页码（从1开始）
+            page_size: 每页记录数
             
         Returns:
-            List[ResumeData]: 简历列表
+            tuple[List[ResumeData], int]: (简历列表, 总记录数)
         """
         if self.db:
             # 使用数据库
+            # 先获取总数
+            total_count = (
+                self.db.query(ResumeDB)
+                .filter(ResumeDB.user_id == user_id)
+                .filter(ResumeDB.name.isnot(None))
+                .filter(ResumeDB.name != "")
+                .count()
+            )
+            
+            # 计算偏移量
+            offset = (page - 1) * page_size
+            
+            # 获取分页数据
             db_resumes = (
                 self.db.query(ResumeDB)
                 .filter(ResumeDB.user_id == user_id)
                 .filter(ResumeDB.name.isnot(None))
                 .filter(ResumeDB.name != "")
+                .offset(offset)
+                .limit(page_size)
                 .all()
             )
-            return [
+            
+            resumes = [
                 ResumeData(
                     id=db_resume.id,
                     filename=db_resume.filename,
@@ -233,9 +251,15 @@ class ResumeService:
                 )
                 for db_resume in db_resumes
             ]
+            
+            return resumes, total_count
         else:
             # 回退到内存存储
-            return [resume for resume in self._resumes.values() if resume.user_id == user_id]
+            all_resumes = [resume for resume in self._resumes.values() if resume.user_id == user_id]
+            total_count = len(all_resumes)
+            start_index = (page - 1) * page_size
+            end_index = start_index + page_size
+            return all_resumes[start_index:end_index], total_count
     
     def update_resume_content(self, resume_id: str, content: str, extracted_info: Dict[str, Any], score: int = None, score_detail: Dict[str, Any] = None) -> bool:
         """

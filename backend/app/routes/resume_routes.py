@@ -3,14 +3,14 @@
 处理简历上传、获取、删除等操作
 """
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, BackgroundTasks
-from typing import List
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, BackgroundTasks, Query
+from typing import List, Optional
 import os
 import uuid
 from datetime import datetime
 from sqlalchemy.orm import Session
 
-from ..models.resume_models import ResumeData, ResumeUploadResponse
+from ..models.resume_models import ResumeData, ResumeUploadResponse, PaginatedResumeResponse
 from ..models.user_models import UserResponse
 from ..services.user_service import User
 from ..services.resume_service import ResumeService
@@ -203,25 +203,47 @@ async def process_resume_async(file_id: str, file_path: str, user_id: str):
         logger.error(f"简历处理失败: {file_id}, 错误: {str(e)}")
 
 
-@router.get("/", response_model=List[ResumeData])
+@router.get("/", response_model=PaginatedResumeResponse)
 async def get_user_resumes(
+    page: int = Query(1, ge=1, description="页码，从1开始"),
+    page_size: int = Query(10, ge=1, le=100, description="每页记录数，最大100"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
-    获取用户的所有简历
+    获取用户的所有简历（支持分页）
     
     Args:
+        page: 页码（从1开始）
+        page_size: 每页记录数（1-100）
         current_user: 当前用户
         db: 数据库会话
         
     Returns:
-        List[ResumeData]: 简历列表
+        PaginatedResumeResponse: 分页简历响应
     """
     try:
         resume_service = ResumeService(db=db)
-        resumes = resume_service.get_user_resumes(str(current_user.id))
-        return resumes
+        resumes, total_count = resume_service.get_user_resumes(
+            str(current_user.id), 
+            page=page, 
+            page_size=page_size
+        )
+        
+        # 计算分页信息
+        total_pages = (total_count + page_size - 1) // page_size
+        has_next = page < total_pages
+        has_prev = page > 1
+        
+        return PaginatedResumeResponse(
+            items=resumes,
+            total=total_count,
+            page=page,
+            page_size=page_size,
+            total_pages=total_pages,
+            has_next=has_next,
+            has_prev=has_prev
+        )
     except Exception as e:
         logger.error(f"获取简历列表失败: {str(e)}")
         raise HTTPException(status_code=500, detail="获取简历列表失败")

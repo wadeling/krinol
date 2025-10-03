@@ -116,6 +116,57 @@
                 </tbody>
               </table>
             </div>
+            
+            <!-- 分页控件 -->
+            <div class="pagination-container">
+              <div class="pagination-info">
+                <span class="pagination-text">
+                  显示 {{ (currentPage - 1) * pageSize + 1 }} - {{ Math.min(currentPage * pageSize, totalCandidates) }} 条，共 {{ totalCandidates }} 条记录
+                </span>
+                <div class="page-size-selector">
+                  <label for="pageSize">每页显示：</label>
+                  <select id="pageSize" v-model="pageSize" @change="handlePageSizeChange" class="page-size-select">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="pagination-controls">
+                <button 
+                  class="pagination-btn" 
+                  :disabled="currentPage === 1"
+                  @click="handlePageChange(currentPage - 1)"
+                >
+                  上一页
+                </button>
+                
+                <div class="page-numbers">
+                  <button 
+                    v-for="page in getVisiblePages()" 
+                    :key="page"
+                    class="page-number"
+                    :class="{ 
+                      active: page === currentPage,
+                      ellipsis: page === '...'
+                    }"
+                    @click="page !== '...' && handlePageChange(page)"
+                  >
+                    {{ page }}
+                  </button>
+                </div>
+                
+                <button 
+                  class="pagination-btn" 
+                  :disabled="currentPage === totalPages"
+                  @click="handlePageChange(currentPage + 1)"
+                >
+                  下一页
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -192,6 +243,11 @@ const showUploadModal = ref(false)
 // 候选人数据 - 从简历数据转换而来
 const candidates = ref([])
 
+// 分页相关状态
+const currentPage = ref(1)
+const pageSize = ref(10) // 每页显示10条记录
+const totalCandidates = ref(0)
+
 // 评分详情弹窗状态
 const showScoreDetailModal = ref(false)
 const currentScoreDetail = ref(null)
@@ -220,11 +276,12 @@ const getStatusClass = (status) => {
 }
 
 // 获取候选人数据
-const fetchCandidates = async () => {
+const fetchCandidates = async (page = 1, size = 10) => {
   try {
-    await resumeStore.fetchResumes()
+    await resumeStore.fetchResumes(page, size)
+    
     // 将简历数据转换为候选人数据格式
-    candidates.value = resumeStore.resumes.map(resume => ({
+    candidates.value = (resumeStore.resumes || []).map(resume => ({
       id: resume.id,
       name: resume.name || 'N/A',
       phone: resume.phone || 'N/A',
@@ -237,9 +294,73 @@ const fetchCandidates = async () => {
       scoreDetail: resume.score_detail || null, // 详细评分信息
       status: getResumeStatus(resume) // 根据简历状态确定候选人状态
     }))
+    
+    // 更新分页信息
+    currentPage.value = page
+    pageSize.value = size
+    totalCandidates.value = resumeStore.pagination?.total || 0
   } catch (error) {
     console.error('获取候选人数据失败:', error)
   }
+}
+
+// 计算总页数
+const totalPages = computed(() => {
+  return resumeStore.pagination?.totalPages || 0
+})
+
+// 分页相关方法
+const handlePageChange = (page) => {
+  currentPage.value = page
+  fetchCandidates(page, pageSize.value)
+}
+
+const handlePageSizeChange = (size) => {
+  pageSize.value = size
+  currentPage.value = 1 // 重置到第一页
+  fetchCandidates(1, size)
+}
+
+// 获取可见的页码数组
+const getVisiblePages = () => {
+  const pages = []
+  const total = totalPages.value
+  const current = currentPage.value
+  
+  if (total <= 7) {
+    // 如果总页数少于等于7页，显示所有页码
+    for (let i = 1; i <= total; i++) {
+      pages.push(i)
+    }
+  } else {
+    // 如果总页数大于7页，显示省略号逻辑
+    if (current <= 4) {
+      // 当前页在前4页
+      for (let i = 1; i <= 5; i++) {
+        pages.push(i)
+      }
+      pages.push('...')
+      pages.push(total)
+    } else if (current >= total - 3) {
+      // 当前页在后4页
+      pages.push(1)
+      pages.push('...')
+      for (let i = total - 4; i <= total; i++) {
+        pages.push(i)
+      }
+    } else {
+      // 当前页在中间
+      pages.push(1)
+      pages.push('...')
+      for (let i = current - 1; i <= current + 1; i++) {
+        pages.push(i)
+      }
+      pages.push('...')
+      pages.push(total)
+    }
+  }
+  
+  return pages
 }
 
 
@@ -299,10 +420,14 @@ const hasValidScoreItems = computed(() => {
 })
 
 // 处理文件上传成功
-const handleUploadSuccess = (response) => {
+const handleUploadSuccess = async (response) => {
   console.log('文件上传成功:', response)
   // 刷新候选人列表
-  fetchCandidates()
+  try {
+    await fetchCandidates()
+  } catch (error) {
+    console.error('刷新候选人列表失败:', error)
+  }
 }
 
 // 退出登录
@@ -311,9 +436,13 @@ const handleLogout = () => {
   router.push('/login')
 }
 
-onMounted(() => {
+onMounted(async () => {
   // 初始化数据
-  fetchCandidates()
+  try {
+    await fetchCandidates()
+  } catch (error) {
+    console.error('初始化候选人数据失败:', error)
+  }
 })
 </script>
 
@@ -546,6 +675,129 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* 分页组件样式 */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.pagination-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pagination-text {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.page-size-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.page-size-selector label {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.page-size-select {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background-color: white;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.page-size-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  background-color: white;
+  color: #374151;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-numbers {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.page-number {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  background-color: white;
+  color: #374151;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 2.5rem;
+  text-align: center;
+}
+
+.page-number:hover {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.page-number.active {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+.page-number.active:hover {
+  background-color: #2563eb;
+  border-color: #2563eb;
+}
+
+/* 省略号样式 */
+.page-number.ellipsis {
+  cursor: default;
+  border: none;
+  background: none;
+  color: #9ca3af;
+}
+
+.page-number.ellipsis:hover {
+  background: none;
+  border: none;
+  color: #9ca3af;
 }
 
 .operation-buttons {
