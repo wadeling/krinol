@@ -26,92 +26,112 @@ logger.info("简历路由模块加载完成")
 router = APIRouter(prefix="/resumes", tags=["简历管理"])
 
 
-@router.post("/upload", response_model=ResumeUploadResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/upload", response_model=List[ResumeUploadResponse], status_code=status.HTTP_201_CREATED)
 async def upload_resume(
     background_tasks: BackgroundTasks,
-    file: UploadFile = File(...),
+    files: List[UploadFile] = File(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
-    上传简历文件并启动异步处理
+    上传简历文件并启动异步处理（支持多文件）
     
     Args:
         background_tasks: FastAPI后台任务
-        file: 上传的文件
+        files: 上传的文件列表
         current_user: 当前用户
+        db: 数据库会话
         
     Returns:
-        ResumeUploadResponse: 上传响应
+        List[ResumeUploadResponse]: 上传响应列表
     """
     try:
-        logger.info(f"开始上传简历文件: {file.filename}")
+        logger.info(f"开始上传简历文件，文件数量: {len(files)}")
         logger.info(f"当前用户: {current_user.username if current_user else 'None'}")
 
-        # 验证文件类型（只支持PDF）
-        if file.content_type != "application/pdf":
-            raise HTTPException(
-                status_code=400, 
-                detail="只支持PDF格式的文件"
-            )
+        results = []
         
-        # 验证文件大小（限制为10MB）
-        file_content = await file.read()
-        if len(file_content) > 10 * 1024 * 1024:
-            raise HTTPException(
-                status_code=400,
-                detail="文件大小不能超过10MB"
-            )
-        
-        # 生成唯一文件名
-        file_id = str(uuid.uuid4())
-        file_extension = os.path.splitext(file.filename)[1]
-        safe_filename = f"{file_id}{file_extension}"
-        
-        # 确保数据目录存在
-        data_dir = "/app/data"
-        os.makedirs(data_dir, exist_ok=True)
-        
-        # 保存文件到磁盘
-        file_path = os.path.join(data_dir, safe_filename)
-        with open(file_path, "wb") as f:
-            f.write(file_content)
-        
-        logger.info(f"文件保存成功: {file_path}")
+        for file in files:
+            try:
+                # 验证文件类型（只支持PDF）
+                if file.content_type != "application/pdf":
+                    results.append(ResumeUploadResponse(
+                        resume_id="",
+                        filename=file.filename,
+                        status="failed",
+                        message="只支持PDF格式的文件"
+                    ))
+                    continue
+                
+                # 验证文件大小（限制为10MB）
+                file_content = await file.read()
+                if len(file_content) > 10 * 1024 * 1024:
+                    results.append(ResumeUploadResponse(
+                        resume_id="",
+                        filename=file.filename,
+                        status="failed",
+                        message="文件大小不能超过10MB"
+                    ))
+                    continue
+                
+                # 生成唯一文件名
+                file_id = str(uuid.uuid4())
+                file_extension = os.path.splitext(file.filename)[1]
+                safe_filename = f"{file_id}{file_extension}"
+                
+                # 确保数据目录存在
+                data_dir = "/app/data"
+                os.makedirs(data_dir, exist_ok=True)
+                
+                # 保存文件到磁盘
+                file_path = os.path.join(data_dir, safe_filename)
+                with open(file_path, "wb") as f:
+                    f.write(file_content)
+                
+                logger.info(f"文件保存成功: {file_path}")
 
-        # 创建简历记录
-        resume_data = ResumeData(
-            id=file_id,
-            filename=file.filename,
-            format="pdf",
-            content="",  # 将在异步任务中填充
-            file_size=len(file_content),
-            user_id=str(current_user.id)
-        )
+                # 创建简历记录
+                resume_data = ResumeData(
+                    id=file_id,
+                    filename=file.filename,
+                    format="pdf",
+                    content="",  # 将在异步任务中填充
+                    file_size=len(file_content),
+                    user_id=str(current_user.id)
+                )
+                
+                # 保存到数据库
+                resume_service = ResumeService(db=db)
+                resume_service.create_resume(resume_data)
+                
+                # 启动异步处理任务
+                background_tasks.add_task(
+                    process_resume_async,
+                    file_id=file_id,
+                    file_path=file_path,
+                    user_id=str(current_user.id)
+                )
+                
+                results.append(ResumeUploadResponse(
+                    resume_id=file_id,
+                    filename=file.filename,
+                    status="uploaded",
+                    message="文件上传成功，正在处理中..."
+                ))
+                
+                logger.info(f"简历上传成功: {file.filename}, 用户: {current_user.email}, 文件ID: {file_id}")
+                
+            except Exception as e:
+                logger.error(f"处理文件 {file.filename} 时出错: {str(e)}")
+                results.append(ResumeUploadResponse(
+                    resume_id="",
+                    filename=file.filename,
+                    status="failed",
+                    message=f"文件处理失败: {str(e)}"
+                ))
         
-        # 保存到数据库
-        resume_service = ResumeService(db=db)
-        resume_service.create_resume(resume_data)
+        return results
         
-        # 启动异步处理任务
-        background_tasks.add_task(
-            process_resume_async,
-            file_id=file_id,
-            file_path=file_path,
-            user_id=str(current_user.id)
-        )
-        
-        logger.info(f"简历上传成功: {file.filename}, 用户: {current_user.email}, 文件ID: {file_id}")
-        
-        return ResumeUploadResponse(
-            resume_id=file_id,
-            filename=file.filename,
-            status="uploaded",
-            message="文件上传成功，正在处理中..."
-        )
-        
-    except HTTPException:
-        raise
     except Exception as e:
         logger.error(f"简历上传失败: {str(e)}")
         raise HTTPException(status_code=500, detail="简历上传失败")

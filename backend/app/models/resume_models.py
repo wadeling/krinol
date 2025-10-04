@@ -111,6 +111,24 @@ class AnalysisResponse(BaseModel):
     message: str = Field(..., description="响应消息")
 
 
+class BatchUploadItem(BaseModel):
+    """批量上传单项结果"""
+    filename: str = Field(..., description="文件名")
+    resume_id: Optional[str] = Field(None, description="简历ID")
+    status: str = Field(..., description="上传状态")
+    message: str = Field(..., description="状态消息")
+    error: Optional[str] = Field(None, description="错误信息")
+
+
+class BatchUploadResponse(BaseModel):
+    """批量上传响应模型"""
+    total_files: int = Field(..., description="总文件数")
+    successful: int = Field(..., description="成功上传数")
+    failed: int = Field(..., description="失败数")
+    results: List[BatchUploadItem] = Field(..., description="详细结果")
+    message: str = Field(..., description="总体消息")
+
+
 class PaginatedResumeResponse(BaseModel):
     """分页简历响应模型"""
     items: List[ResumeData] = Field(..., description="简历列表")
