@@ -213,6 +213,7 @@ class ResumeService:
                 .filter(ResumeDB.user_id == user_id)
                 .filter(ResumeDB.name.isnot(None))
                 .filter(ResumeDB.name != "")
+                .order_by(ResumeDB.score.desc())
                 .offset(offset)
                 .limit(page_size)
                 .all()
