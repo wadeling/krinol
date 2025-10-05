@@ -1,4 +1,3 @@
-# 前端Dockerfile - 多阶段构建
 # 第一阶段：构建阶段
 FROM node:18-alpine AS builder
 
@@ -8,15 +7,18 @@ WORKDIR /app
 # 复制package文件
 COPY frontend/package*.json ./
 
-# 清理可能的缓存和锁文件，解决ARM64架构下的rollup依赖问题
+# 清理可能的缓存和锁文件
 RUN rm -rf node_modules package-lock.json
 
 # 设置npm配置
 RUN npm config set fund false && \
     npm config set audit false
 
-# 安装依赖（包含开发依赖）
-RUN npm install
+# 安装依赖，跳过可选依赖
+RUN npm install --omit=optional --no-audit --no-fund
+
+# 手动安装rollup以解决ARM64问题
+RUN npm install rollup@latest --save-dev
 
 # 复制源代码
 COPY frontend/ .

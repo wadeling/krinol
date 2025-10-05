@@ -125,7 +125,7 @@
                 </span>
                 <div class="page-size-selector">
                   <label for="pageSize">每页显示：</label>
-                  <select id="pageSize" v-model="pageSize" @change="handlePageSizeChange" class="page-size-select">
+                  <select id="pageSize" v-model="pageSize" @change="handlePageSizeChange($event.target.value)" class="page-size-select">
                     <option value="5">5</option>
                     <option value="10">10</option>
                     <option value="20">20</option>
@@ -278,7 +278,20 @@ const getStatusClass = (status) => {
 // 获取候选人数据
 const fetchCandidates = async (page = 1, size = 10) => {
   try {
-    await resumeStore.fetchResumes(page, size)
+    console.log('fetchCandidates called with page:', page, 'size:', size, 'types:', typeof page, typeof size)
+    // 确保参数是数字类型
+    const pageNum = parseInt(page)
+    const sizeNum = parseInt(size)
+    console.log('Parsed values - pageNum:', pageNum, 'sizeNum:', sizeNum, 'types:', typeof pageNum, typeof sizeNum)
+    
+    // 检查是否为有效数字
+    if (isNaN(pageNum) || isNaN(sizeNum) || pageNum <= 0 || sizeNum <= 0) {
+      console.error('Invalid parameters - page:', page, 'size:', size, 'parsed as pageNum:', pageNum, 'sizeNum:', sizeNum)
+      return
+    }
+    
+    console.log('Calling resumeStore.fetchResumes with pageNum:', pageNum, 'sizeNum:', sizeNum)
+    await resumeStore.fetchResumes(pageNum, sizeNum)
     
     // 将简历数据转换为候选人数据格式
     candidates.value = (resumeStore.resumes || []).map(resume => ({
@@ -296,9 +309,9 @@ const fetchCandidates = async (page = 1, size = 10) => {
     }))
     
     // 更新分页信息
-    currentPage.value = page
-    pageSize.value = size
-    totalCandidates.value = resumeStore.pagination?.total || 0
+    currentPage.value = pageNum
+    pageSize.value = sizeNum
+    totalCandidates.value = parseInt(resumeStore.pagination?.total) || 0
   } catch (error) {
     console.error('获取候选人数据失败:', error)
   }
@@ -311,14 +324,36 @@ const totalPages = computed(() => {
 
 // 分页相关方法
 const handlePageChange = (page) => {
-  currentPage.value = page
-  fetchCandidates(page, pageSize.value)
+  console.log('handlePageChange called with page:', page, 'type:', typeof page)
+  const pageNum = parseInt(page)
+  const sizeNum = parseInt(pageSize.value)
+  console.log('Parsed values - pageNum:', pageNum, 'sizeNum:', sizeNum, 'isNaN:', isNaN(pageNum), isNaN(sizeNum))
+  
+  // 检查是否为有效数字
+  if (isNaN(pageNum) || isNaN(sizeNum) || pageNum <= 0 || sizeNum <= 0) {
+    console.error('Invalid parameters - page:', page, 'pageSize.value:', pageSize.value, 'parsed as pageNum:', pageNum, 'sizeNum:', sizeNum)
+    return
+  }
+  
+  currentPage.value = pageNum // 确保转换为数字
+  fetchCandidates(pageNum, sizeNum) // 确保pageSize也是数字
 }
 
 const handlePageSizeChange = (size) => {
-  pageSize.value = size
+  console.log('handlePageSizeChange called with size:', size, 'type:', typeof size)
+  const sizeNum = parseInt(size)
+  console.log('Parsed size:', sizeNum, 'type:', typeof sizeNum, 'isNaN:', isNaN(sizeNum))
+  
+  // 检查是否为有效数字
+  if (isNaN(sizeNum) || sizeNum <= 0) {
+    console.error('Invalid page size:', size, 'parsed as:', sizeNum)
+    return
+  }
+  
+  pageSize.value = sizeNum // 确保转换为数字
   currentPage.value = 1 // 重置到第一页
-  fetchCandidates(1, size)
+  console.log('Calling fetchCandidates with page: 1, size:', sizeNum)
+  fetchCandidates(1, sizeNum) // 确保传递给API的也是数字
 }
 
 // 获取可见的页码数组
@@ -424,7 +459,7 @@ const handleUploadSuccess = async (response) => {
   console.log('文件上传成功:', response)
   // 刷新候选人列表
   try {
-    await fetchCandidates()
+    await fetchCandidates(currentPage.value, pageSize.value)
   } catch (error) {
     console.error('刷新候选人列表失败:', error)
   }
@@ -439,7 +474,7 @@ const handleLogout = () => {
 onMounted(async () => {
   // 初始化数据
   try {
-    await fetchCandidates()
+    await fetchCandidates(1, 10) // 明确传递初始参数
   } catch (error) {
     console.error('初始化候选人数据失败:', error)
   }

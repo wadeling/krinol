@@ -1,6 +1,15 @@
 # 简历分析系统 Makefile
+registryname ?= $(or $(REGISTRY_NAME),ccr.ccs.tencentyun.com)
+reponame ?= $(or $(REPO_NAME),krinol)
+imagetag ?= $(or $(IMAGE_TAG),latest)
+platform ?= $(or $(PLATFORM),linux/arm64)
 
-.PHONY: help install dev build test clean docker-up docker-down
+
+# 镜像名称
+backend_image=$(registryname)/$(reponame)/krinol-backend:$(imagetag)
+frontend_image=$(registryname)/$(reponame)/krinol-frontend:$(imagetag)
+
+.PHONY: help install dev build test clean docker-up docker-down docker-build docker-build-backend docker-build-frontend docker-push docker-push-backend docker-push-frontend
 
 # 默认目标
 help:
@@ -12,6 +21,18 @@ help:
 	@echo "  clean       - 清理临时文件"
 	@echo "  docker-up   - 启动Docker容器"
 	@echo "  docker-down - 停止Docker容器"
+	@echo "  docker-build         - 构建所有Docker镜像"
+	@echo "  docker-build-backend - 构建后端Docker镜像"
+	@echo "  docker-build-frontend- 构建前端Docker镜像"
+	@echo "  docker-push          - 推送所有Docker镜像到仓库"
+	@echo "  docker-push-backend  - 推送后端Docker镜像到仓库"
+	@echo "  docker-push-frontend - 推送前端Docker镜像到仓库"
+	@echo ""
+	@echo "配置变量:"
+	@echo "  registryname - 镜像仓库地址 (默认: $(registryname))"
+	@echo "  reponame     - 仓库名称 (默认: $(reponame))"
+	@echo "  imagetag     - 镜像标签 (默认: $(imagetag))"
+	@echo "  platform     - 构建平台 (默认: $(platform))"
 
 # 安装依赖
 install:
@@ -74,22 +95,45 @@ docker-down:
 
 docker-build:
 	@echo "构建Docker镜像..."
-	cd deploy && docker-compose -f docker-compose.prod.yaml build
+	@echo "使用平台: $(platform)"
+	@echo "后端镜像: $(backend_image)"
+	@echo "前端镜像: $(frontend_image)"
+	cd deploy && PLATFORM=$(platform) docker-compose -f docker-compose.prod.yaml build
 	@echo "镜像构建完成!"
 
 # 构建Docker镜像（单独构建）
 docker-build-backend:
 	@echo "构建后端Docker镜像..."
-	docker build --no-cache -f build/backend/Dockerfile -t krinol-backend:latest .
+	@echo "使用平台: $(platform)"
+	@echo "镜像名称: $(backend_image)"
+	docker buildx build --no-cache --platform $(platform) -f build/backend/Dockerfile -t $(backend_image) -t krinol-backend:latest --load .
 
 docker-build-frontend:
 	@echo "构建前端Docker镜像..."
-	@if [ "$(shell uname -m)" = "arm64" ] || [ "$(shell uname -m)" = "aarch64" ]; then \
-		echo "检测到ARM64架构，使用专用Dockerfile..."; \
-		docker build --no-cache -f build/frontend/Dockerfile.arm64 -t krinol-frontend:latest .; \
-	else \
-		docker build --no-cache -f build/frontend/Dockerfile -t krinol-frontend:latest .; \
-	fi
+	@echo "使用平台: $(platform)"
+	@echo "镜像名称: $(frontend_image)"
+	docker buildx build --no-cache --platform $(platform) -f build/frontend/Dockerfile -t $(frontend_image) -t krinol-frontend:latest --load .
+
+# 推送镜像到仓库
+docker-push:
+	@echo "推送Docker镜像到仓库..."
+	@echo "后端镜像: $(backend_image)"
+	@echo "前端镜像: $(frontend_image)"
+	docker push $(backend_image)
+	docker push $(frontend_image)
+	@echo "镜像推送完成!"
+
+docker-push-backend:
+	@echo "推送后端Docker镜像..."
+	@echo "镜像名称: $(backend_image)"
+	docker push $(backend_image)
+	@echo "后端镜像推送完成!"
+
+docker-push-frontend:
+	@echo "推送前端Docker镜像..."
+	@echo "镜像名称: $(frontend_image)"
+	docker push $(frontend_image)
+	@echo "前端镜像推送完成!"
 
 # 数据库相关
 db-migrate:

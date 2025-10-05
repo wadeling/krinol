@@ -20,7 +20,9 @@ export const useResumeStore = defineStore('resume', () => {
   // 动作
   const fetchResumes = async (page = 1, pageSize = 10) => {
     try {
+      console.log('resumeStore.fetchResumes called with page:', page, 'pageSize:', pageSize, 'types:', typeof page, typeof pageSize)
       loading.value = true
+      console.log('Making API request with params:', { page, page_size: pageSize })
       const response = await api.get('/resumes/', {
         params: { page, page_size: pageSize }
       })

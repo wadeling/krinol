@@ -3,11 +3,13 @@ version: '3.8'
 
 services:
   backend:
-    image: krinol-backend:latest
+    image: ${REGISTRY_NAME}/${REPO_NAME}/krinol-backend:${IMAGE_TAG}
+    pull_policy: never
     container_name: krinol-backend-prod
+    platform: ${PLATFORM:-linux/amd64}
     restart: unless-stopped
     env_file:
-      - envfile
+      - .env
     environment:
       - ENVIRONMENT=production
       - DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}
@@ -27,9 +29,13 @@ services:
       - krinol-network
 
   frontend:
-    image: krinol-frontend:latest
+    image: ${REGISTRY_NAME}/${REPO_NAME}/krinol-frontend:${IMAGE_TAG}
+    pull_policy: never
     container_name: krinol-frontend-prod
+    platform: ${PLATFORM:-linux/amd64}
     restart: unless-stopped
+    env_file:
+      - .env
     ports:
       - "80:80"
     depends_on:
@@ -39,10 +45,12 @@ services:
 
   db:
     image: mysql:8.0
+    pull_policy: never
     container_name: krinol-db-prod
+    platform: ${PLATFORM:-linux/amd64}
     restart: unless-stopped
     env_file:
-      - envfile
+      - .env
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
@@ -57,7 +65,9 @@ services:
 
   redis:
     image: redis:7-alpine
+    pull_policy: never
     container_name: krinol-redis-prod
+    platform: ${PLATFORM:-linux/amd64}
     restart: unless-stopped
     volumes:
       - redis_data:/data
