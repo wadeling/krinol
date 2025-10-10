@@ -67,6 +67,14 @@ class Settings(BaseSettings):
         default=10 * 1024 * 1024,  # 10MB
         description="最大文件大小（字节）"
     )
+    max_batch_size: int = Field(
+        default=100 * 1024 * 1024,  # 100MB
+        description="批量上传最大总大小（字节）"
+    )
+    max_batch_files: int = Field(
+        default=20,
+        description="批量上传最大文件数量"
+    )
     allowed_file_types: str = Field(
         default="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain",
         description="允许的文件类型，用逗号分隔"

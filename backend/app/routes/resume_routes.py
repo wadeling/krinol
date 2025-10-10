@@ -19,6 +19,7 @@ from ..utils.auth import get_current_user
 from ..utils.logger import get_logger
 from ..utils.file_processor import FileProcessor
 from ..database import get_db
+from ..config.settings import get_settings
 
 logger = get_logger(__name__)
 logger.info("简历路由模块加载完成")
@@ -46,10 +47,19 @@ async def upload_resume(
         List[ResumeUploadResponse]: 上传响应列表
     """
     try:
+        settings = get_settings()
         logger.info(f"开始上传简历文件，文件数量: {len(files)}")
         logger.info(f"当前用户: {current_user.username if current_user else 'None'}")
 
+        # 验证批量上传限制
+        if len(files) > settings.max_batch_files:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"批量上传文件数量不能超过 {settings.max_batch_files} 个"
+            )
+
         results = []
+        total_size = 0
         
         for file in files:
             try:
@@ -63,16 +73,25 @@ async def upload_resume(
                     ))
                     continue
                 
-                # 验证文件大小（限制为10MB）
+                # 验证文件大小（限制为配置的最大文件大小）
                 file_content = await file.read()
-                if len(file_content) > 10 * 1024 * 1024:
+                file_size = len(file_content)
+                if file_size > settings.max_file_size:
                     results.append(ResumeUploadResponse(
                         resume_id="",
                         filename=file.filename,
                         status="failed",
-                        message="文件大小不能超过10MB"
+                        message=f"文件大小不能超过 {settings.max_file_size // (1024*1024)}MB"
                     ))
                     continue
+                
+                # 检查批量上传总大小限制
+                total_size += file_size
+                if total_size > settings.max_batch_size:
+                    raise HTTPException(
+                        status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                        detail=f"批量上传总大小不能超过 {settings.max_batch_size // (1024*1024)}MB"
+                    )
                 
                 # 生成唯一文件名
                 file_id = str(uuid.uuid4())
@@ -96,7 +115,7 @@ async def upload_resume(
                     filename=file.filename,
                     format="pdf",
                     content="",  # 将在异步任务中填充
-                    file_size=len(file_content),
+                    file_size=file_size,
                     user_id=str(current_user.id)
                 )
                 

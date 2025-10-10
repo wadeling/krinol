@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from app.config.settings import get_settings
 from app.routes import auth_routes, resume_routes, analysis_routes
 from app.database import create_tables
@@ -41,6 +42,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 添加GZip压缩中间件
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # 注册路由
 app.include_router(auth_routes.router)
