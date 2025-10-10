@@ -14,13 +14,13 @@ services:
       - ENVIRONMENT=production
       - DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}
       - MYSQL_HOST=db
-      - MYSQL_PORT=3306
+      - MYSQL_PORT=4306
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - SECRET_KEY=${SECRET_KEY}
     ports:
-      - "8000:8000"
+      - "8100:8000"
     depends_on:
       - db
     volumes:
@@ -36,8 +36,10 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      - VUE_APP_API_URL=${VUE_APP_API_URL:-/api}
     ports:
-      - "80:80"
+      - "801:80"
     depends_on:
       - backend
     networks:
@@ -59,7 +61,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     ports:
-      - "3306:3306"
+      - "4306:3306"
     networks:
       - krinol-network
 

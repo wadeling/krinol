@@ -2,7 +2,7 @@ import axios from 'axios'
 
 // 创建axios实例
 const api = axios.create({
-  baseURL: process.env.VUE_APP_API_URL || 'http://localhost:8000',
+  baseURL: process.env.VUE_APP_API_URL || '/api',
   timeout: 120000, // 增加到2分钟，因为简历处理需要时间
   headers: {
     'Content-Type': 'application/json'

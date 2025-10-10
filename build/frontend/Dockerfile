@@ -23,6 +23,10 @@ RUN npm install rollup@latest --save-dev
 # 复制源代码
 COPY frontend/ .
 
+# 设置构建参数
+ARG VUE_APP_API_URL
+ENV VUE_APP_API_URL=${VUE_APP_API_URL:-/api}
+
 # 构建应用
 RUN npm run build
 

@@ -61,7 +61,15 @@ build_images() {
     local env=${1:-dev}
     local compose_file=$(get_compose_file $env)
     log_info "构建 Docker 镜像 ($env 环境)..."
-    docker-compose -f $compose_file build --no-cache
+    
+    # 设置前端API URL环境变量
+    if [ -f ".env" ]; then
+        source .env
+        export VUE_APP_API_URL="${VUE_APP_API_URL:-/api}"
+        log_info "使用前端API URL: $VUE_APP_API_URL"
+    fi
+    
+    docker-compose -p krinol -f $compose_file build --no-cache
     log_info "镜像构建完成"
 }
 
@@ -70,7 +78,7 @@ start_services() {
     local env=${1:-dev}
     local compose_file=$(get_compose_file $env)
     log_info "启动服务 ($env 环境)..."
-    docker-compose -f $compose_file up -d
+    docker-compose -p krinol -f $compose_file up -d
     log_info "服务启动完成"
 }
 
@@ -79,7 +87,7 @@ stop_services() {
     local env=${1:-dev}
     local compose_file=$(get_compose_file $env)
     log_info "停止服务 ($env 环境)..."
-    docker-compose -f $compose_file down
+    docker-compose -p krinol -f $compose_file down
     log_info "服务已停止"
 }
 
@@ -88,7 +96,7 @@ restart_services() {
     local env=${1:-dev}
     local compose_file=$(get_compose_file $env)
     log_info "重启服务 ($env 环境)..."
-    docker-compose -f $compose_file restart
+    docker-compose -p krinol -f $compose_file restart
     log_info "服务重启完成"
 }
 
@@ -96,7 +104,7 @@ restart_services() {
 view_logs() {
     local env=${1:-dev}
     local compose_file=$(get_compose_file $env)
-    docker-compose -f $compose_file logs -f
+    docker-compose -p krinol -f $compose_file logs -f
 }
 
 # 清理

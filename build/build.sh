@@ -39,13 +39,23 @@ build_frontend() {
     log_info "构建前端 Docker 镜像..."
     cd "$PROJECT_ROOT"
     
+    # 设置默认API URL
+    VUE_APP_API_URL="${VUE_APP_API_URL:-/api}"
+    log_info "使用API URL: $VUE_APP_API_URL"
+    
     # 检测架构
     ARCH=$(uname -m)
     if [[ "$ARCH" == "arm64" || "$ARCH" == "aarch64" ]]; then
         log_info "检测到ARM64架构，使用专用Dockerfile..."
-        docker build --no-cache -f build/frontend/Dockerfile.arm64 -t krinol-frontend:latest .
+        docker build --no-cache \
+            --build-arg VUE_APP_API_URL="$VUE_APP_API_URL" \
+            -f build/frontend/Dockerfile.arm64 \
+            -t krinol-frontend:latest .
     else
-        docker build --no-cache -f build/frontend/Dockerfile -t krinol-frontend:latest .
+        docker build --no-cache \
+            --build-arg VUE_APP_API_URL="$VUE_APP_API_URL" \
+            -f build/frontend/Dockerfile \
+            -t krinol-frontend:latest .
     fi
     
     log_info "前端镜像构建完成"

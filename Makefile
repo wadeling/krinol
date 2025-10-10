@@ -119,20 +119,20 @@ docker-push:
 	@echo "推送Docker镜像到仓库..."
 	@echo "后端镜像: $(backend_image)"
 	@echo "前端镜像: $(frontend_image)"
-	docker push $(backend_image)
-	docker push $(frontend_image)
+	docker push --platform $(platform) $(backend_image)
+	docker push --platform $(platform) $(frontend_image)
 	@echo "镜像推送完成!"
 
 docker-push-backend:
 	@echo "推送后端Docker镜像..."
 	@echo "镜像名称: $(backend_image)"
-	docker push $(backend_image)
+	docker push --platform $(platform) $(backend_image)
 	@echo "后端镜像推送完成!"
 
 docker-push-frontend:
 	@echo "推送前端Docker镜像..."
 	@echo "镜像名称: $(frontend_image)"
-	docker push $(frontend_image)
+	docker push --platform $(platform) $(frontend_image)
 	@echo "前端镜像推送完成!"
 
 # 数据库相关
