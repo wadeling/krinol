@@ -84,13 +84,13 @@
                 <tbody class="table-body">
                   <!-- Sample data -->
                   <tr class="table-row" v-for="candidate in candidates" :key="candidate.id">
-                    <td class="table-cell name-cell">{{ candidate.name || 'N/A' }}</td>
-                    <td class="table-cell phone-cell">{{ candidate.phone || 'N/A' }}</td>
-                    <td class="table-cell position-cell">{{ candidate.position || 'N/A' }}</td>
-                    <td class="table-cell company-cell">{{ candidate.school_name || 'N/A' }}</td>
-                    <td class="table-cell graduation-year-cell">{{ candidate.graduation_year || 'N/A' }}</td>
-                    <td class="table-cell location-cell">{{ candidate.school_city || 'N/A' }}</td>
-                    <td class="table-cell working-time-cell">{{ candidate.email || 'N/A' }}</td>
+                    <td class="table-cell name-cell" :title="getTooltipTitle(candidate.name, 'name')" ref="nameCell">{{ candidate.name || 'N/A' }}</td>
+                    <td class="table-cell phone-cell" :title="getTooltipTitle(candidate.phone, 'phone')" ref="phoneCell">{{ candidate.phone || 'N/A' }}</td>
+                    <td class="table-cell position-cell" :title="getTooltipTitle(candidate.position, 'position')" ref="positionCell">{{ candidate.position || 'N/A' }}</td>
+                    <td class="table-cell company-cell" :title="getTooltipTitle(candidate.school_name, 'company')" ref="companyCell">{{ candidate.school_name || 'N/A' }}</td>
+                    <td class="table-cell graduation-year-cell" :title="getTooltipTitle(candidate.graduation_year, 'graduation')" ref="graduationCell">{{ candidate.graduation_year || 'N/A' }}</td>
+                    <td class="table-cell location-cell" :title="getTooltipTitle(candidate.school_city, 'location')" ref="locationCell">{{ candidate.school_city || 'N/A' }}</td>
+                    <td class="table-cell email-cell" :title="getTooltipTitle(candidate.email, 'email')" ref="emailCell">{{ candidate.email || 'N/A' }}</td>
                     <td class="table-cell score-cell">
                       <div class="score-container">
                         <span class="score-badge" :class="getScoreClass(candidate.cvScore)">
@@ -227,7 +227,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useResumeStore } from '@/stores/resume'
@@ -274,6 +274,34 @@ const getStatusClass = (status) => {
       return 'status-default'
   }
 }
+
+// 检测文本是否被截断
+const isTextTruncated = (element) => {
+  if (!element) return false
+  return element.scrollWidth > element.clientWidth
+}
+
+// 获取tooltip标题（只有被截断时才返回内容）
+const getTooltipTitle = (content, type) => {
+  if (!content || content === 'N/A') return null
+  
+  // 根据实际列宽度和中文显示特点调整阈值
+  // 基于实际列宽度：name(120px), phone(180px), position(150px), company(180px), graduation(80px), location(80px), email(220px)
+  // 中文字符在14px字体下约占用14px宽度，英文字符约7px
+  const maxLengths = {
+    name: 6,        // 姓名列120px，约6个中文字符
+    phone: 15,      // 电话列180px，约15个字符
+    position: 8,    // 职位列150px，约8个中文字符
+    company: 10,    // 学校列180px，约10个中文字符
+    graduation: 4,  // 毕业年份列80px，约4个字符
+    location: 4,    // 城市列80px，约4个中文字符
+    email: 20       // 邮箱列220px，约20个字符
+  }
+  
+  const maxLength = maxLengths[type] || 8
+  return content.length > maxLength ? content : null
+}
+
 
 // 获取候选人数据
 const fetchCandidates = async (page = 1, size = 10) => {
@@ -654,6 +682,8 @@ onMounted(async () => {
 .candidates-table {
   width: 100%;
   font-size: 0.875rem;
+  table-layout: fixed;
+  border-collapse: collapse;
 }
 
 .table-head-row {
@@ -665,6 +695,35 @@ onMounted(async () => {
   text-align: left;
   font-weight: 500;
   padding: 0.75rem 1rem;
+}
+
+/* School列表头样式 */
+.table-header-cell:nth-child(4) {
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
+}
+
+/* Graduation Year列表头样式 */
+.table-header-cell:nth-child(5) {
+  width: 80px;
+  min-width: 80px;
+  max-width: 80px;
+  text-align: center;
+}
+
+/* City列表头样式 */
+.table-header-cell:nth-child(6) {
+  width: 80px;
+  min-width: 80px;
+  max-width: 80px;
+}
+
+/* Email列表头样式 */
+.table-header-cell:nth-child(7) {
+  width: 220px;
+  min-width: 220px;
+  max-width: 220px;
 }
 
 .table-body {
@@ -681,22 +740,68 @@ onMounted(async () => {
 }
 
 .table-cell {
-  padding: 0.75rem 1rem;
+  padding: 0.375rem 0.5rem;
   vertical-align: middle;
+  height: 28px;
+  line-height: 1.2;
+  position: relative;
+}
+
+/* 只有有title属性的单元格才显示pointer光标和tooltip */
+.table-cell[title] {
+  cursor: pointer;
+}
+
+.table-cell[title]:hover {
+  position: relative;
+}
+
+/* 自定义tooltip样式 - 只对有title属性的单元格生效 */
+.table-cell[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #1f2937;
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+  max-width: 300px;
+  word-wrap: break-word;
+  white-space: normal;
+  text-align: left;
+  margin-bottom: 5px;
 }
 
 .name-cell {
   color: #0ea5e9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 80px;
+  max-width: 120px;
 }
 
 .phone-cell, .working-time-cell {
   color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 120px;
+  max-width: 180px;
 }
 
 .position-cell {
   color: #059669;
   font-weight: 500;
-  max-width: 120px;
+  min-width: 100px;
+  max-width: 150px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -710,6 +815,41 @@ onMounted(async () => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 160px;
+  max-width: 220px;
+  width: 180px; /* 固定宽度，增加以显示完整学校名称 */
+}
+
+/* City列样式 - 足够显示四个汉字 */
+.location-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 60px;
+  max-width: 80px;
+  text-align: left;
+  width: 80px; /* 固定宽度，足够显示四个汉字 */
+}
+
+/* Graduation Year列样式 - 较窄，年份只需要4位数字 */
+.graduation-year-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 70px;
+  max-width: 90px;
+  width: 80px; /* 固定宽度，稍微增加以与City列保持距离 */
+  text-align: center;
+}
+
+/* Email列样式 - 适中宽度，确保邮件地址完整显示 */
+.email-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 180px;
+  max-width: 240px;
+  width: 220px; /* 固定宽度，稍微缩小 */
 }
 
 /* 分页组件样式 */
@@ -833,6 +973,96 @@ onMounted(async () => {
   background: none;
   border: none;
   color: #9ca3af;
+}
+
+
+/* 响应式表格样式 */
+@media (max-width: 1200px) {
+  .name-cell {
+    min-width: 70px;
+    max-width: 100px;
+  }
+  
+  .phone-cell, .working-time-cell {
+    min-width: 100px;
+    max-width: 150px;
+  }
+  
+  .position-cell {
+    min-width: 90px;
+    max-width: 130px;
+  }
+  
+  .company-cell {
+    min-width: 140px;
+    max-width: 200px;
+    width: 160px;
+  }
+  
+  .graduation-year-cell {
+    min-width: 60px;
+    max-width: 80px;
+    width: 70px;
+  }
+  
+  .location-cell {
+    min-width: 50px;
+    max-width: 70px;
+    width: 70px;
+  }
+  
+  .email-cell {
+    min-width: 160px;
+    max-width: 220px;
+    width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-cell {
+    padding: 0.25rem 0.375rem;
+    font-size: 0.8rem;
+    height: 24px;
+  }
+  
+  .name-cell {
+    min-width: 60px;
+    max-width: 80px;
+  }
+  
+  .phone-cell, .working-time-cell {
+    min-width: 90px;
+    max-width: 120px;
+  }
+  
+  .position-cell {
+    min-width: 80px;
+    max-width: 110px;
+  }
+  
+  .company-cell {
+    min-width: 120px;
+    max-width: 160px;
+    width: 140px;
+  }
+  
+  .graduation-year-cell {
+    min-width: 50px;
+    max-width: 70px;
+    width: 60px;
+  }
+  
+  .location-cell {
+    min-width: 45px;
+    max-width: 60px;
+    width: 60px;
+  }
+  
+  .email-cell {
+    min-width: 140px;
+    max-width: 180px;
+    width: 160px;
+  }
 }
 
 .operation-buttons {
