@@ -7,6 +7,7 @@
           <!-- Brand -->
           <div class="brand">
             <div class="brand-text">Krinol</div>
+            <div class="brand-slogan">智能筛选，精准判断</div>
           </div>
 
 
@@ -555,14 +556,24 @@ onMounted(async () => {
 
 .brand {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
 }
 
 .brand-text {
   font-size: 1.5rem;
   font-weight: 900;
   color: #1e293b;
+  line-height: 1;
+}
+
+.brand-slogan {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #64748b;
+  line-height: 1;
+  letter-spacing: 0.025em;
 }
 
 

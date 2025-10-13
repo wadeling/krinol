@@ -3,7 +3,10 @@
     <!-- 侧边栏 -->
     <div class="sidebar" :class="{ collapsed: sidebarCollapsed }">
       <div class="sidebar-header">
-        <h2 v-if="!sidebarCollapsed">简历分析</h2>
+        <div v-if="!sidebarCollapsed" class="brand-container">
+          <h2>Krinol</h2>
+          <p class="brand-slogan">智能筛选，精准判断</p>
+        </div>
         <el-icon v-else size="24" color="#409EFF">
           <Document />
         </el-icon>
@@ -161,10 +164,25 @@ const handleUserCommand = async (command) => {
     justify-content: center;
     border-bottom: 1px solid #434a50;
     
-    h2 {
-      color: white;
-      margin: 0;
-      font-size: 18px;
+    .brand-container {
+      text-align: center;
+      
+      h2 {
+        color: white;
+        margin: 0 0 2px 0;
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      
+      .brand-slogan {
+        color: #bfcbd9;
+        margin: 0;
+        font-size: 10px;
+        font-weight: 500;
+        line-height: 1;
+        letter-spacing: 0.025em;
+      }
     }
   }
   

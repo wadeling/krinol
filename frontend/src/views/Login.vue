@@ -2,21 +2,24 @@
   <div class="login-container">
     <!-- 左上角 Logo -->
     <div class="logo-section">
-      <div class="logo">
-        <div class="logo-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="32" height="32" rx="8" fill="url(#gradient)"/>
-            <path d="M8 12h16v2H8v-2zm0 4h16v2H8v-2zm0 4h12v2H8v-2z" fill="white"/>
-            <defs>
-              <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#6366f1"/>
-                <stop offset="100%" style="stop-color:#8b5cf6"/>
-              </linearGradient>
-            </defs>
-          </svg>
+        <div class="logo">
+          <div class="logo-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="32" height="32" rx="8" fill="url(#gradient)"/>
+              <path d="M8 12h16v2H8v-2zm0 4h16v2H8v-2zm0 4h12v2H8v-2z" fill="white"/>
+              <defs>
+                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#6366f1"/>
+                  <stop offset="100%" style="stop-color:#8b5cf6"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div class="logo-text-container">
+            <span class="logo-text">Krinol</span>
+            <span class="logo-slogan">智能筛选，精准判断</span>
+          </div>
         </div>
-        <span class="logo-text">Krinol</span>
-      </div>
     </div>
 
     <!-- 登录表单容器 -->
@@ -415,11 +418,28 @@ export default {
   justify-content: center;
 }
 
+.logo-text-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
 .logo-text {
   font-size: 24px;
   font-weight: 700;
   color: #1e293b;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1;
+}
+
+.logo-slogan {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1;
+  letter-spacing: 0.025em;
 }
 
 /* 登录表单容器 */
