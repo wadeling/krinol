@@ -57,6 +57,29 @@ class ResumeData(BaseModel):
     # 评分相关字段
     score: Optional[int] = Field(None, description="简历总分")
     score_detail: Optional[Dict[str, Any]] = Field(None, description="各维度详细得分")
+    
+    # 面试评价相关字段
+    interview_score: Optional[int] = Field(None, description="面试分数 (0-100)")
+    interview_comment: Optional[str] = Field(None, description="面试评价内容")
+    interview_date: Optional[datetime] = Field(None, description="面试评价时间")
+    interviewer: Optional[str] = Field(None, description="面试官名字")
+
+
+class InterviewEvaluationRequest(BaseModel):
+    """面试评价请求模型"""
+    interview_score: int = Field(..., ge=0, le=100, description="面试分数 (0-100)")
+    interview_comment: Optional[str] = Field(None, max_length=10000, description="面试评价内容")
+    interviewer: Optional[str] = Field(None, max_length=100, description="面试官名字")
+
+
+class InterviewEvaluationResponse(BaseModel):
+    """面试评价响应模型"""
+    success: bool = Field(..., description="操作是否成功")
+    message: str = Field(..., description="响应消息")
+    interview_score: Optional[int] = Field(None, description="面试分数")
+    interview_comment: Optional[str] = Field(None, description="面试评价内容")
+    interview_date: Optional[datetime] = Field(None, description="面试评价时间")
+    interviewer: Optional[str] = Field(None, description="面试官名字")
 
 
 class AnalysisRequest(BaseModel):

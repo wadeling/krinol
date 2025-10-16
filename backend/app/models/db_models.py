@@ -51,6 +51,12 @@ class ResumeDB(Base):
     # 评分相关字段
     score = Column(Integer, nullable=True, comment="简历总分")
     score_detail = Column(JSON, nullable=True, comment="各维度详细得分")
+    
+    # 面试评价相关字段
+    interview_score = Column(Integer, nullable=True, comment="面试分数 (0-100)")
+    interview_comment = Column(Text, nullable=True, comment="面试评价内容")
+    interview_date = Column(DateTime, nullable=True, comment="面试评价时间")
+    interviewer = Column(String(100), nullable=True, comment="面试官名字")
 
 
 class AnalysisResultDB(Base):

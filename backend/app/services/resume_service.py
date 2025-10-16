@@ -120,7 +120,12 @@ class ResumeService:
                 projects=resume_data.projects,
                 # 评分字段
                 score=resume_data.score,
-                score_detail=resume_data.score_detail
+                score_detail=resume_data.score_detail,
+                # 面试评价字段
+                interview_score=resume_data.interview_score,
+                interview_comment=resume_data.interview_comment,
+                interview_date=resume_data.interview_date,
+                interviewer=resume_data.interviewer
             )
             self.db.add(db_resume)
             self.db.commit()
@@ -131,6 +136,102 @@ class ResumeService:
             logger.warning("数据库连接不可用，使用内存存储")
         
         return resume_data
+    
+    def _db_to_resume_data(self, db_resume: ResumeDB) -> ResumeData:
+        """
+        将数据库对象转换为ResumeData对象
+        
+        Args:
+            db_resume: 数据库简历对象
+            
+        Returns:
+            ResumeData: 简历数据对象
+        """
+        return ResumeData(
+            id=db_resume.id,
+            filename=db_resume.filename,
+            format=ResumeFormat(db_resume.format.value.lower()),
+            content=db_resume.content,
+            file_size=db_resume.file_size,
+            upload_time=db_resume.upload_time,
+            user_id=db_resume.user_id,
+            file_path=db_resume.file_path,
+            processing_status=db_resume.processing_status,
+            extracted_info=db_resume.extracted_info,
+            processing_error=db_resume.processing_error,
+            processed_at=db_resume.processed_at,
+            # AI提取的字段
+            name=db_resume.name,
+            age=db_resume.age,
+            school_name=db_resume.school_name,
+            school_city=db_resume.school_city,
+            education_level=db_resume.education_level,
+            major=db_resume.major,
+            graduation_year=db_resume.graduation_year,
+            phone=db_resume.phone,
+            email=db_resume.email,
+            position=db_resume.position,
+            work_experience=db_resume.work_experience,
+            projects=db_resume.projects,
+            # 评分字段
+            score=db_resume.score,
+            score_detail=db_resume.score_detail,
+            # 面试评价字段
+            interview_score=db_resume.interview_score,
+            interview_comment=db_resume.interview_comment,
+            interview_date=db_resume.interview_date,
+            interviewer=db_resume.interviewer
+        )
+    
+    def update_interview_evaluation(
+        self, 
+        resume_id: str, 
+        interview_score: int, 
+        interview_comment: Optional[str] = None,
+        interviewer: Optional[str] = None
+    ) -> Optional[ResumeData]:
+        """
+        更新面试评价
+        
+        Args:
+            resume_id: 简历ID
+            interview_score: 面试分数
+            interview_comment: 面试评价内容
+            interviewer: 面试官名字
+            
+        Returns:
+            ResumeData: 更新后的简历数据，如果简历不存在返回None
+        """
+        if not self.db:
+            logger.error("数据库连接不可用")
+            return None
+            
+        try:
+            # 查找简历
+            db_resume = self.db.query(ResumeDB).filter(ResumeDB.id == resume_id).first()
+            if not db_resume:
+                logger.warning(f"简历不存在: {resume_id}")
+                return None
+            
+            # 更新面试评价字段
+            db_resume.interview_score = interview_score
+            db_resume.interview_comment = interview_comment
+            db_resume.interviewer = interviewer
+            db_resume.interview_date = datetime.utcnow()
+            
+            # 提交更改
+            self.db.commit()
+            self.db.refresh(db_resume)
+            
+            logger.info(f"面试评价更新成功: {resume_id}, 分数: {interview_score}")
+            
+            # 转换为ResumeData对象
+            return self._db_to_resume_data(db_resume)
+            
+        except Exception as e:
+            logger.error(f"更新面试评价失败: {str(e)}")
+            self.db.rollback()
+            return None
     
     def get_resume(self, resume_id: str) -> Optional[ResumeData]:
         """
@@ -174,7 +275,12 @@ class ResumeService:
                     projects=db_resume.projects,
                     # 评分字段
                     score=db_resume.score,
-                    score_detail=db_resume.score_detail
+                    score_detail=db_resume.score_detail,
+                    # 面试评价字段
+                    interview_score=db_resume.interview_score,
+                    interview_comment=db_resume.interview_comment,
+                    interview_date=db_resume.interview_date,
+                    interviewer=db_resume.interviewer
                 )
             return None
         else:
@@ -248,7 +354,12 @@ class ResumeService:
                     projects=db_resume.projects,
                     # 评分字段
                     score=db_resume.score,
-                    score_detail=db_resume.score_detail
+                    score_detail=db_resume.score_detail,
+                    # 面试评价字段
+                    interview_score=db_resume.interview_score,
+                    interview_comment=db_resume.interview_comment,
+                    interview_date=db_resume.interview_date,
+                    interviewer=db_resume.interviewer
                 )
                 for db_resume in db_resumes
             ]

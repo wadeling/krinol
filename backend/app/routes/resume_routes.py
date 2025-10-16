@@ -10,7 +10,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy.orm import Session
 
-from ..models.resume_models import ResumeData, ResumeUploadResponse, PaginatedResumeResponse
+from ..models.resume_models import ResumeData, ResumeUploadResponse, PaginatedResumeResponse, InterviewEvaluationRequest, InterviewEvaluationResponse
 from ..models.user_models import UserResponse
 from ..services.user_service import User
 from ..services.resume_service import ResumeService
@@ -366,3 +366,62 @@ async def delete_resume(
     except Exception as e:
         logger.error(f"删除简历失败: {str(e)}")
         raise HTTPException(status_code=500, detail="删除简历失败")
+
+
+@router.put("/{resume_id}/interview", response_model=InterviewEvaluationResponse)
+async def update_interview_evaluation(
+    resume_id: str,
+    interview_data: InterviewEvaluationRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    更新面试评价
+    
+    Args:
+        resume_id: 简历ID
+        interview_data: 面试评价数据
+        current_user: 当前用户
+        db: 数据库会话
+        
+    Returns:
+        InterviewEvaluationResponse: 面试评价响应
+    """
+    try:
+        resume_service = ResumeService(db=db)
+        
+        # 先验证简历是否存在且属于当前用户
+        resume = resume_service.get_resume(resume_id)
+        if not resume:
+            raise HTTPException(status_code=404, detail="简历不存在")
+        
+        if resume.user_id != str(current_user.id):
+            raise HTTPException(status_code=403, detail="无权访问此简历")
+        
+        # 更新面试评价
+        updated_resume = resume_service.update_interview_evaluation(
+            resume_id=resume_id,
+            interview_score=interview_data.interview_score,
+            interview_comment=interview_data.interview_comment,
+            interviewer=interview_data.interviewer
+        )
+        
+        if not updated_resume:
+            raise HTTPException(status_code=500, detail="更新面试评价失败")
+        
+        logger.info(f"面试评价更新成功: {resume_id}, 用户: {current_user.email}, 分数: {interview_data.interview_score}")
+        
+        return InterviewEvaluationResponse(
+            success=True,
+            message="面试评价更新成功",
+            interview_score=updated_resume.interview_score,
+            interview_comment=updated_resume.interview_comment,
+            interview_date=updated_resume.interview_date,
+            interviewer=updated_resume.interviewer
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"更新面试评价失败: {str(e)}")
+        raise HTTPException(status_code=500, detail="更新面试评价失败")

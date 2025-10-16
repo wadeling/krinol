@@ -109,8 +109,16 @@
                     </td>
                     <td class="table-cell operation-cell">
                       <div class="operation-buttons">
-                        <button class="add-talent-btn">Add to talent pool</button>
-                        <span class="status-chip" :class="getStatusClass(candidate.status)">{{ candidate.status || 'Unknown' }}</span>
+                        <button 
+                          class="add-talent-btn" 
+                          :class="{ 
+                            'has-evaluation': candidate.interview_score !== null && candidate.interview_score !== undefined,
+                            [getInterviewScoreClass(candidate.interview_score)]: candidate.interview_score !== null && candidate.interview_score !== undefined
+                          }"
+                          @click="showInterviewModal(candidate)"
+                        >
+                          {{ candidate.interview_score !== null && candidate.interview_score !== undefined ? `面试评价(${candidate.interview_score}分)` : '面试评价' }}
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -224,6 +232,76 @@
         </div>
       </div>
     </div>
+
+    <!-- 面试评价弹窗 -->
+    <div v-if="showInterviewModalFlag" class="modal-overlay" @click="closeInterviewModal">
+      <div class="interview-modal" @click.stop>
+        <div class="modal-header">
+          <h3 class="modal-title">面试评价</h3>
+          <button class="modal-close" @click="closeInterviewModal">×</button>
+        </div>
+        <div class="modal-content">
+          <div class="candidate-info">
+            <h4>{{ currentInterviewCandidate?.name }}</h4>
+            <p class="candidate-position">{{ currentInterviewCandidate?.position }}</p>
+          </div>
+          
+          <form @submit.prevent="submitInterviewEvaluation" class="interview-form">
+            <div class="form-group">
+              <label for="interview_score" class="form-label">
+                面试分数 <span class="required">*</span>
+              </label>
+              <input
+                id="interview_score"
+                v-model="interviewForm.interview_score"
+                type="number"
+                min="0"
+                max="100"
+                class="form-input"
+                placeholder="请输入面试分数（0-100）"
+                required
+              />
+            </div>
+            
+            <div class="form-group">
+              <label for="interviewer" class="form-label">面试官</label>
+              <input
+                id="interviewer"
+                v-model="interviewForm.interviewer"
+                type="text"
+                class="form-input"
+                placeholder="请输入面试官名字"
+                maxlength="100"
+              />
+            </div>
+            
+            <div class="form-group">
+              <label for="interview_comment" class="form-label">面试评价</label>
+              <textarea
+                id="interview_comment"
+                v-model="interviewForm.interview_comment"
+                class="form-textarea"
+                placeholder="请输入面试评价内容"
+                maxlength="10000"
+                rows="6"
+              ></textarea>
+              <div class="char-count">
+                {{ interviewForm.interview_comment.length }}/10000
+              </div>
+            </div>
+            
+            <div class="form-actions">
+              <button type="button" class="btn-cancel" @click="closeInterviewModal">
+                取消
+              </button>
+              <button type="submit" class="btn-submit" :disabled="isSubmitting">
+                {{ isSubmitting ? '提交中...' : '提交评价' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -254,6 +332,16 @@ const showScoreDetailModal = ref(false)
 const currentScoreDetail = ref(null)
 const currentCandidate = ref(null)
 
+// 面试评价弹窗状态
+const showInterviewModalFlag = ref(false)
+const currentInterviewCandidate = ref(null)
+const interviewForm = ref({
+  interview_score: '',
+  interview_comment: '',
+  interviewer: ''
+})
+const isSubmitting = ref(false)
+
 // 根据分数返回对应的样式类（满分48分）
 const getScoreClass = (score) => {
   if (score >= 40) return 'score-excellent'  // 40分以上为优秀
@@ -273,6 +361,25 @@ const getStatusClass = (status) => {
       return 'status-pending'
     default:
       return 'status-default'
+  }
+}
+
+// 根据面试分数返回对应的样式类
+const getInterviewScoreClass = (score) => {
+  if (score === null || score === undefined) {
+    return ''
+  }
+  
+  if (score >= 90) {
+    return 'score-excellent'  // 90-100分：优秀
+  } else if (score >= 80) {
+    return 'score-good'       // 80-89分：良好
+  } else if (score >= 70) {
+    return 'score-average'    // 70-79分：中等
+  } else if (score >= 60) {
+    return 'score-pass'       // 60-69分：及格
+  } else {
+    return 'score-fail'       // 0-59分：不及格
   }
 }
 
@@ -334,7 +441,12 @@ const fetchCandidates = async (page = 1, size = 10) => {
       email: resume.email || 'N/A',
       cvScore: resume.score || 0, // 使用数据库中的评分
       scoreDetail: resume.score_detail || null, // 详细评分信息
-      status: getResumeStatus(resume) // 根据简历状态确定候选人状态
+      status: getResumeStatus(resume), // 根据简历状态确定候选人状态
+      // 面试评价字段
+      interview_score: resume.interview_score || null,
+      interview_comment: resume.interview_comment || null,
+      interview_date: resume.interview_date || null,
+      interviewer: resume.interviewer || null
     }))
     
     // 更新分页信息
@@ -462,6 +574,100 @@ const closeScoreDetailModal = () => {
   showScoreDetailModal.value = false
   currentScoreDetail.value = null
   currentCandidate.value = null
+}
+
+// 显示面试评价弹窗
+const showInterviewModal = (candidate) => {
+  console.log('showInterviewModal called with candidate:', candidate)
+  currentInterviewCandidate.value = candidate
+  
+  // 直接显示弹窗，如果有现有评价则填充数据
+  if (candidate.interview_score !== null && candidate.interview_score !== undefined) {
+    // 已有评价，填充现有数据
+    interviewForm.value = {
+      interview_score: candidate.interview_score || '',
+      interview_comment: candidate.interview_comment || '',
+      interviewer: candidate.interviewer || ''
+    }
+    console.log('showInterviewModalFlag set to true (existing evaluation)')
+  } else {
+    // 没有评价，清空表单
+    interviewForm.value = {
+      interview_score: '',
+      interview_comment: '',
+      interviewer: ''
+    }
+    console.log('showInterviewModalFlag set to true (new evaluation)')
+  }
+  
+  showInterviewModalFlag.value = true
+}
+
+// 关闭面试评价弹窗
+const closeInterviewModal = () => {
+  showInterviewModalFlag.value = false
+  currentInterviewCandidate.value = null
+  interviewForm.value = {
+    interview_score: '',
+    interview_comment: '',
+    interviewer: ''
+  }
+  isSubmitting.value = false
+}
+
+// 提交面试评价
+const submitInterviewEvaluation = async () => {
+  if (!currentInterviewCandidate.value) return
+  
+  // 验证必填字段
+  if (!interviewForm.value.interview_score || interviewForm.value.interview_score < 0 || interviewForm.value.interview_score > 100) {
+    alert('请输入有效的面试分数（0-100）')
+    return
+  }
+  
+  if (interviewForm.value.interview_comment && interviewForm.value.interview_comment.length > 10000) {
+    alert('面试评价内容不能超过10000字符')
+    return
+  }
+  
+  isSubmitting.value = true
+  
+  try {
+    const response = await fetch(`/api/resumes/${currentInterviewCandidate.value.id}/interview`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${userStore.token}`
+      },
+      body: JSON.stringify({
+        interview_score: parseInt(interviewForm.value.interview_score),
+        interview_comment: interviewForm.value.interview_comment || null,
+        interviewer: interviewForm.value.interviewer || null
+      })
+    })
+    
+    if (!response.ok) {
+      throw new Error('提交失败')
+    }
+    
+    const result = await response.json()
+    console.log('面试评价提交成功:', result)
+    
+    // 更新本地数据
+    currentInterviewCandidate.value.interview_score = result.interview_score
+    currentInterviewCandidate.value.interview_comment = result.interview_comment
+    currentInterviewCandidate.value.interviewer = result.interviewer
+    currentInterviewCandidate.value.interview_date = result.interview_date
+    
+    alert('面试评价提交成功！')
+    closeInterviewModal()
+    
+  } catch (error) {
+    console.error('提交面试评价失败:', error)
+    alert('提交失败，请重试')
+  } finally {
+    isSubmitting.value = false
+  }
 }
 
 // 获取评分项目名称
@@ -1095,6 +1301,66 @@ onMounted(async () => {
   &:hover {
     background-color: #334155;
   }
+  
+  &.has-evaluation {
+    // 默认颜色（90-100分）
+    background-color: #dcfce7;
+    color: #166534;
+    
+    &:hover {
+      background-color: #bbf7d0;
+    }
+    
+    // 90-100分：优秀（深绿色）
+    &.score-excellent {
+      background-color: #10b981;
+      color: #ffffff;
+      
+      &:hover {
+        background-color: #059669;
+      }
+    }
+    
+    // 80-89分：良好（浅绿色）
+    &.score-good {
+      background-color: #d1fae5;
+      color: #065f46;
+      
+      &:hover {
+        background-color: #a7f3d0;
+      }
+    }
+    
+    // 70-79分：中等（黄色）
+    &.score-average {
+      background-color: #f59e0b;
+      color: #ffffff;
+      
+      &:hover {
+        background-color: #d97706;
+      }
+    }
+    
+    // 60-69分：及格（橙色）
+    &.score-pass {
+      background-color: #f97316;
+      color: #ffffff;
+      
+      &:hover {
+        background-color: #ea580c;
+      }
+    }
+    
+    // 0-59分：不及格（红色）
+    &.score-fail {
+      background-color: #ef4444;
+      color: #ffffff;
+      
+      &:hover {
+        background-color: #dc2626;
+      }
+    }
+  }
 }
 
 .status-chip {
@@ -1328,6 +1594,121 @@ onMounted(async () => {
   max-height: 80vh;
   overflow: hidden;
   animation: modalSlideIn 0.3s ease-out;
+}
+
+/* 面试评价弹窗样式 */
+.interview-modal {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.candidate-position {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin: 0.25rem 0 0 0;
+}
+
+.interview-form {
+  margin-top: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.required {
+  color: #ef4444;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  
+  &::placeholder {
+    color: #9ca3af;
+  }
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.char-count {
+  text-align: right;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.btn-cancel,
+.btn-submit {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.btn-cancel {
+  background-color: #f3f4f6;
+  color: #374151;
+  
+  &:hover {
+    background-color: #e5e7eb;
+  }
+}
+
+.btn-submit {
+  background-color: #3b82f6;
+  color: white;
+  
+  &:hover:not(:disabled) {
+    background-color: #2563eb;
+  }
+  
+  &:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+  }
 }
 
 @keyframes modalSlideIn {
